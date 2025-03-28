@@ -111,11 +111,11 @@
             </div>
         </header>
         
-        <div th:if="${categories.empty}" class="empty-message">
+        <div th:if="${#lists.isEmpty(categories)}" class="empty-message">
             <p>No categories available. Click "Add New Category" to create one.</p>
         </div>
         
-        <table th:unless="${categories.empty}">
+        <table th:unless="${#lists.isEmpty(categories)}">
             <thead>
                 <tr>
                     <th>ID</th>

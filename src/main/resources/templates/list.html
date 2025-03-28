@@ -97,11 +97,11 @@
             <a th:href="@{/dashboard}" class="back-button">Back to Home</a>
         </header>
         
-        <div th:if="${categories.empty}" class="empty-message">
+        <div th:if="${#lists.isEmpty(categories)}" class="empty-message">
             <p>No categories available at the moment. Please check back later.</p>
         </div>
         
-        <div th:unless="${categories.empty}" class="categories-grid">
+        <div th:unless="${#lists.isEmpty(categories)}" class="categories-grid">
             <a th:each="category : ${categories}" 
                th:href="@{/activities/category/{id}(id=${category.id})}" 
                class="category-card">
