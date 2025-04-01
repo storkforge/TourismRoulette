@@ -7,7 +7,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -27,7 +29,6 @@ public class CategoryController {
     @GetMapping("/categories")
     public String listCategories(Model model) {
         model.addAttribute("categories", categoryService.getAllCategories());
-        // Changed from "categories/list" to "categories" to match your template location
         return "categories";
     }
 
@@ -35,29 +36,69 @@ public class CategoryController {
     public String viewCategory(@PathVariable Long id, Model model) {
         model.addAttribute("category", categoryService.getCategoryById(id));
         model.addAttribute("activities", categoryService.getCategoryById(id).getActivities());
-        // You'll need to create this template or adjust the return value
         return "category-view";
     }
 
-    @GetMapping("/admin/categories")
-    public String adminCategories(Model model) {
-        model.addAttribute("categories", categoryService.getAllCategories());
-        // You'll need to create this template or adjust the return value
-        return "admin-categories";
-    }
-
-    @GetMapping("/admin/categories/new")
+    @GetMapping("/categories/new")
     public String newCategoryForm(Model model) {
         model.addAttribute("category", new Category());
-        // You'll need to create this template or adjust the return value
         return "category-form";
     }
 
-    @GetMapping("/admin/categories/edit/{id}")
+    @GetMapping("/categories/edit/{id}")
     public String editCategoryForm(@PathVariable Long id, Model model) {
         model.addAttribute("category", categoryService.getCategoryById(id));
-        // You'll need to create this template or adjust the return value
         return "category-form";
+    }
+
+    // Form submission handlers
+
+    @PostMapping("/categories")
+    public String createCategory(@Valid @ModelAttribute("category") Category category,
+                                 BindingResult result,
+                                 RedirectAttributes redirectAttributes) {
+        if (result.hasErrors()) {
+            return "category-form";
+        }
+
+        try {
+            categoryService.createCategory(category);
+            redirectAttributes.addFlashAttribute("successMessage", "Category created successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error creating category: " + e.getMessage());
+        }
+
+        return "redirect:/categories";
+    }
+
+    @PostMapping("/categories/{id}")
+    public String updateCategory(@PathVariable Long id,
+                                 @Valid @ModelAttribute("category") Category category,
+                                 BindingResult result,
+                                 RedirectAttributes redirectAttributes) {
+        if (result.hasErrors()) {
+            return "category-form";
+        }
+
+        try {
+            categoryService.updateCategory(id, category);
+            redirectAttributes.addFlashAttribute("successMessage", "Category updated successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error updating category: " + e.getMessage());
+        }
+
+        return "redirect:/categories";
+    }
+
+    @PostMapping("/categories/delete/{id}")
+    public String deleteCategory(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            categoryService.deleteCategory(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Category deleted successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting category: " + e.getMessage());
+        }
+        return "redirect:/categories";
     }
 
     // REST API endpoints
@@ -74,23 +115,23 @@ public class CategoryController {
         return ResponseEntity.ok(categoryService.getCategoryById(id));
     }
 
-    @PostMapping("/api/admin/categories")
+    @PostMapping("/api/categories")
     @ResponseBody
-    public ResponseEntity<Category> createCategory(@Valid @RequestBody Category category) {
+    public ResponseEntity<Category> createCategoryApi(@Valid @RequestBody Category category) {
         Category newCategory = categoryService.createCategory(category);
         return new ResponseEntity<>(newCategory, HttpStatus.CREATED);
     }
 
-    @PutMapping("/api/admin/categories/{id}")
+    @PutMapping("/api/categories/{id}")
     @ResponseBody
-    public ResponseEntity<Category> updateCategory(@PathVariable Long id, @Valid @RequestBody Category category) {
+    public ResponseEntity<Category> updateCategoryApi(@PathVariable Long id, @Valid @RequestBody Category category) {
         Category updatedCategory = categoryService.updateCategory(id, category);
         return ResponseEntity.ok(updatedCategory);
     }
 
-    @DeleteMapping("/api/admin/categories/{id}")
+    @DeleteMapping("/api/categories/{id}")
     @ResponseBody
-    public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteCategoryApi(@PathVariable Long id) {
         categoryService.deleteCategory(id);
         return ResponseEntity.noContent().build();
     }
