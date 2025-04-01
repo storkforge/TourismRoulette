@@ -52,11 +52,17 @@ public class ActivityService {
     }
 
     public List<Activity> searchActivities(String searchTerm, Set<Long> categoryIds) {
-        if (categoryIds == null || categoryIds.isEmpty()) {
-            // Implement basic search without category filtering if needed
-            return getAllActivities(); // Replace with actual search logic
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            return categoryIds != null && !categoryIds.isEmpty()
+                    ? getActivitiesByCategories(categoryIds, false)
+                    : getAllActivities();
         }
-        return activityRepository.searchByTermAndCategories(searchTerm, categoryIds);
+
+        if (categoryIds != null && !categoryIds.isEmpty()) {
+            return activityRepository.searchByTermAndCategories(searchTerm, categoryIds);
+        } else {
+            return activityRepository.searchByTerm(searchTerm);
+        }
     }
 
     @Transactional

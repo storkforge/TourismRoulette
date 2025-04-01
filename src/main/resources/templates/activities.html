@@ -179,7 +179,6 @@
   <header>
     <h1 class="page-title" th:text="${category != null ? 'Activities in ' + category.name : 'All Activities'}">Activities</h1>
     <div class="nav-links">
-      <a href="/" class="nav-link">Home</a>
       <a href="/dashboard" class="nav-link">Dashboard</a>
       <a href="/categories" class="nav-link">Categories</a>
       <a href="/activities/new" class="nav-link">Add Activity</a>
@@ -230,19 +229,4 @@
   </div>
 </div>
 </body>
-</html></qodoArtifact>
-
-
-With these changes:
-
-1. The ActivityController remains unchanged as it already handles the `/activities` endpoint properly
-2. The ListController now simply redirects from `/list` to `/activities`
-3. The SecurityConfig has been updated to reflect the consolidated endpoints
-4. The activities.html template has been updated to remove references to the `/list` endpoint
-
-This approach:
-- Keeps your existing `/activities` endpoint functionality intact
-- Ensures any existing links to `/list` will still work by redirecting to `/activities`
-- Simplifies your application by consolidating to a single endpoint for browsing activities
-
-You can now safely remove the list.html template if you wish, as it's no longer needed.
+</html>

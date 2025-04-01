@@ -3,6 +3,7 @@ package com.example.tourismroullete.controller;
 import com.example.tourismroullete.entities.Activity;
 import com.example.tourismroullete.service.ActivityService;
 import com.example.tourismroullete.service.CategoryService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +13,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import javax.validation.Valid;
 import java.util.List;
 import java.util.Set;
 
@@ -72,9 +72,17 @@ public class ActivityController {
             @Valid @ModelAttribute("activity") Activity activity,
             BindingResult result,
             @RequestParam(required = false) Set<Long> categoryIds,
+            Model model,
             RedirectAttributes redirectAttributes) {
 
         if (result.hasErrors()) {
+            model.addAttribute("categories", categoryService.getAllCategories());
+            return "activity-form";
+        }
+
+        if (categoryIds == null || categoryIds.isEmpty()) {
+            model.addAttribute("categoryError", "Please select at least one category");
+            model.addAttribute("categories", categoryService.getAllCategories());
             return "activity-form";
         }
 
@@ -94,9 +102,17 @@ public class ActivityController {
             @Valid @ModelAttribute("activity") Activity activity,
             BindingResult result,
             @RequestParam(required = false) Set<Long> categoryIds,
+            Model model,
             RedirectAttributes redirectAttributes) {
 
         if (result.hasErrors()) {
+            model.addAttribute("categories", categoryService.getAllCategories());
+            return "activity-form";
+        }
+
+        if (categoryIds == null || categoryIds.isEmpty()) {
+            model.addAttribute("categoryError", "Please select at least one category");
+            model.addAttribute("categories", categoryService.getAllCategories());
             return "activity-form";
         }
 
@@ -146,7 +162,6 @@ public class ActivityController {
     public List<Activity> filterActivities(
             @RequestParam(required = false) Set<Long> categoryIds,
             @RequestParam(defaultValue = "false") boolean matchAll) {
-        // Changed from filterActivities to getActivitiesByCategories to match the service method
         return activityService.getActivitiesByCategories(categoryIds, matchAll);
     }
 
@@ -182,5 +197,46 @@ public class ActivityController {
     public ResponseEntity<Void> deleteActivityApi(@PathVariable Long id) {
         activityService.deleteActivity(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/api/activities/{activityId}/categories/{categoryId}")
+    @ResponseBody
+    public ResponseEntity<Activity> addCategoryToActivity(
+            @PathVariable Long activityId,
+            @PathVariable Long categoryId) {
+        Activity activity = activityService.addCategoryToActivity(activityId, categoryId);
+        return ResponseEntity.ok(activity);
+    }
+
+    @DeleteMapping("/api/activities/{activityId}/categories/{categoryId}")
+    @ResponseBody
+    public ResponseEntity<Activity> removeCategoryFromActivity(
+            @PathVariable Long activityId,
+            @PathVariable Long categoryId) {
+        Activity activity = activityService.removeCategoryFromActivity(activityId, categoryId);
+        return ResponseEntity.ok(activity);
+    }
+
+    @GetMapping("/api/activities/random")
+    @ResponseBody
+    public ResponseEntity<Activity> getRandomActivity(
+            @RequestParam(required = false) Set<Long> categoryIds) {
+        List<Activity> activities;
+
+        if (categoryIds != null && !categoryIds.isEmpty()) {
+            activities = activityService.getActivitiesByCategories(categoryIds, false);
+        } else {
+            activities = activityService.getAllActivities();
+        }
+
+        if (activities.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Get a random activity from the list
+        int randomIndex = (int) (Math.random() * activities.size());
+        Activity randomActivity = activities.get(randomIndex);
+
+        return ResponseEntity.ok(randomActivity);
     }
 }
