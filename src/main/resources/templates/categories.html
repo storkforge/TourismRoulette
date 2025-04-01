@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
 <head>
-    <title>Tourism Roulette - Categories</title>
+    <title>Tourism Roulette - Manage Categories</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -104,12 +104,17 @@
             color: #6c757d;
             font-style: italic;
         }
+        .nav-links {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
 <div class="container">
     <header>
-        <h1 class="page-title">Categories</h1>
+        <h1 class="page-title">Manage Categories</h1>
         <a href="/categories/new" class="btn btn-primary">Add New Category</a>
     </header>
 
@@ -119,6 +124,12 @@
     </div>
     <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
         <span th:text="${errorMessage}"></span>
+    </div>
+
+    <!-- Navigation links -->
+    <div class="nav-links">
+        <a href="/dashboard" class="btn btn-primary">Dashboard</a>
+        <a href="/categories" class="btn btn-primary">View Categories</a>
     </div>
 
     <!-- Empty state message -->
@@ -150,7 +161,7 @@
             <td th:text="${category.name}">Category Name</td>
             <td th:text="${category.description}">Description</td>
             <td th:text="${category.nameKey}">category.name</td>
-            <td th:text="${category.activities.size()}">0</td>
+            <td th:text="${category.activities != null ? category.activities.size() : 0}">0</td>
             <td class="actions">
                 <a th:href="@{/categories/edit/{id}(id=${category.id})}" class="btn btn-primary">Edit</a>
                 <form th:action="@{/categories/delete/{id}(id=${category.id})}"

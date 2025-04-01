@@ -35,9 +35,13 @@ public class SecurityConfig {
                         .requestMatchers("/login", "/login?error", "/login?logout", "/register", "/api/register").permitAll()
                         .requestMatchers("/", "/home", "/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
                         // Allow public access to categories and activities browsing
-                        .requestMatchers("/categories/**", "/activities/**").permitAll()
+                        .requestMatchers("/categories", "/categories/view/**").permitAll()
+                        .requestMatchers("/activities", "/activities/category/**", "/activities/view/**").permitAll()
                         .requestMatchers("/api/categories/**", "/api/activities/**").permitAll()
                         // Admin-only access to category and activity management
+                        .requestMatchers("/categories/new", "/categories/edit/**", "/categories/delete/**").hasRole("ADMIN")
+                        .requestMatchers("/categories/manage").hasRole("ADMIN")
+                        .requestMatchers("/activities/new", "/activities/edit/**", "/activities/delete/**").hasRole("ADMIN")
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         // All other requests need authentication

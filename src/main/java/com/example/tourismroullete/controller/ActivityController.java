@@ -8,7 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -32,8 +34,7 @@ public class ActivityController {
     public String listActivities(Model model) {
         model.addAttribute("activities", activityService.getAllActivities());
         model.addAttribute("categories", categoryService.getAllCategories());
-        // Changed from "activities/list" to "list" to match your template location
-        return "list";
+        return "activities";
     }
 
     @GetMapping("/activities/category/{categoryId}")
@@ -41,38 +42,83 @@ public class ActivityController {
         model.addAttribute("activities", activityService.getActivitiesByCategory(categoryId));
         model.addAttribute("category", categoryService.getCategoryById(categoryId));
         model.addAttribute("categories", categoryService.getAllCategories());
-        // Changed from "activities/list" to "list" to match your template location
-        return "list";
+        return "activities";
     }
 
     @GetMapping("/activities/{id}")
     public String viewActivity(@PathVariable Long id, Model model) {
         model.addAttribute("activity", activityService.getActivityById(id));
-        // You'll need to create this template or adjust the return value
         return "activity-view";
     }
 
-    @GetMapping("/admin/activities")
-    public String adminActivities(Model model) {
-        model.addAttribute("activities", activityService.getAllActivities());
-        // You'll need to create this template or adjust the return value
-        return "admin-activities";
-    }
-
-    @GetMapping("/admin/activities/new")
+    @GetMapping("/activities/new")
     public String newActivityForm(Model model) {
         model.addAttribute("activity", new Activity());
         model.addAttribute("categories", categoryService.getAllCategories());
-        // You'll need to create this template or adjust the return value
         return "activity-form";
     }
 
-    @GetMapping("/admin/activities/edit/{id}")
+    @GetMapping("/activities/edit/{id}")
     public String editActivityForm(@PathVariable Long id, Model model) {
         model.addAttribute("activity", activityService.getActivityById(id));
         model.addAttribute("categories", categoryService.getAllCategories());
-        // You'll need to create this template or adjust the return value
         return "activity-form";
+    }
+
+    // Form submission handlers
+
+    @PostMapping("/activities")
+    public String createActivity(
+            @Valid @ModelAttribute("activity") Activity activity,
+            BindingResult result,
+            @RequestParam(required = false) Set<Long> categoryIds,
+            RedirectAttributes redirectAttributes) {
+
+        if (result.hasErrors()) {
+            return "activity-form";
+        }
+
+        try {
+            activityService.createActivity(activity, categoryIds);
+            redirectAttributes.addFlashAttribute("successMessage", "Activity created successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error creating activity: " + e.getMessage());
+        }
+
+        return "redirect:/activities";
+    }
+
+    @PostMapping("/activities/{id}")
+    public String updateActivity(
+            @PathVariable Long id,
+            @Valid @ModelAttribute("activity") Activity activity,
+            BindingResult result,
+            @RequestParam(required = false) Set<Long> categoryIds,
+            RedirectAttributes redirectAttributes) {
+
+        if (result.hasErrors()) {
+            return "activity-form";
+        }
+
+        try {
+            activityService.updateActivity(id, activity, categoryIds);
+            redirectAttributes.addFlashAttribute("successMessage", "Activity updated successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error updating activity: " + e.getMessage());
+        }
+
+        return "redirect:/activities";
+    }
+
+    @PostMapping("/activities/delete/{id}")
+    public String deleteActivity(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            activityService.deleteActivity(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Activity deleted successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting activity: " + e.getMessage());
+        }
+        return "redirect:/activities";
     }
 
     // REST API endpoints
@@ -100,6 +146,7 @@ public class ActivityController {
     public List<Activity> filterActivities(
             @RequestParam(required = false) Set<Long> categoryIds,
             @RequestParam(defaultValue = "false") boolean matchAll) {
+        // Changed from filterActivities to getActivitiesByCategories to match the service method
         return activityService.getActivitiesByCategories(categoryIds, matchAll);
     }
 
@@ -111,18 +158,18 @@ public class ActivityController {
         return activityService.searchActivities(term, categoryIds);
     }
 
-    @PostMapping("/api/admin/activities")
+    @PostMapping("/api/activities")
     @ResponseBody
-    public ResponseEntity<Activity> createActivity(
+    public ResponseEntity<Activity> createActivityApi(
             @Valid @RequestBody Activity activity,
             @RequestParam(required = false) Set<Long> categoryIds) {
         Activity newActivity = activityService.createActivity(activity, categoryIds);
         return new ResponseEntity<>(newActivity, HttpStatus.CREATED);
     }
 
-    @PutMapping("/api/admin/activities/{id}")
+    @PutMapping("/api/activities/{id}")
     @ResponseBody
-    public ResponseEntity<Activity> updateActivity(
+    public ResponseEntity<Activity> updateActivityApi(
             @PathVariable Long id,
             @Valid @RequestBody Activity activity,
             @RequestParam(required = false) Set<Long> categoryIds) {
@@ -130,28 +177,10 @@ public class ActivityController {
         return ResponseEntity.ok(updatedActivity);
     }
 
-    @DeleteMapping("/api/admin/activities/{id}")
+    @DeleteMapping("/api/activities/{id}")
     @ResponseBody
-    public ResponseEntity<Void> deleteActivity(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteActivityApi(@PathVariable Long id) {
         activityService.deleteActivity(id);
         return ResponseEntity.noContent().build();
-    }
-
-    @PostMapping("/api/admin/activities/{activityId}/categories/{categoryId}")
-    @ResponseBody
-    public ResponseEntity<Activity> addCategoryToActivity(
-            @PathVariable Long activityId,
-            @PathVariable Long categoryId) {
-        Activity activity = activityService.addCategoryToActivity(activityId, categoryId);
-        return ResponseEntity.ok(activity);
-    }
-
-    @DeleteMapping("/api/admin/activities/{activityId}/categories/{categoryId}")
-    @ResponseBody
-    public ResponseEntity<Activity> removeCategoryFromActivity(
-            @PathVariable Long activityId,
-            @PathVariable Long categoryId) {
-        Activity activity = activityService.removeCategoryFromActivity(activityId, categoryId);
-        return ResponseEntity.ok(activity);
     }
 }
