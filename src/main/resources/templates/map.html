@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tourism Roulette Karta</title>
+    <script src="https://cdn.jsdelivr.net/npm/ol/dist/ol.js"></script>
+    <style>
+        #map {
+            width: 100%;
+            height: 500px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Välj en plats på kartan</h1>
+<div id="map"></div>
+<div id="recommendations"></div>
+
+<script>
+    // Skapa en karta
+    var map = new ol.Map({
+        target: 'map',
+        layers: [new ol.layer.Tile({source: new ol.source.OSM()})],
+        view: new ol.View({center: ol.proj.fromLonLat([18.0686, 59.3293]), zoom: 12})
+    });
+
+    // --- Do this setup ONCE when your map is initialized ---
+
+    // 1. Create a single source for all markers
+    const markerSource = new ol.source.Vector(); // Assuming 'ol' namespace
+
+    // 2. Create a single layer for the markers
+    const markerLayer = new ol.layer.Vector({
+        source: markerSource,
+        // Optional: Apply a default style for all markers on this layer
+        // style: new ol.style.Style({
+        //     image: new ol.style.Icon({
+        //         src: 'https://openlayers.org/en/v4.6.5/examples/data/icon.png',
+        //         scale: 0.1,
+        //         anchor: [0.5, 1] // Anchor at the bottom center of the icon
+        //     })
+        // })
+    });
+
+    // 3. Add the single marker layer to the map
+    map.addLayer(markerLayer);
+
+    // Hämta användarens plats
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            var userLocation = ol.proj.fromLonLat([position.coords.longitude, position.coords.latitude]);
+            map.getView().setCenter(userLocation);
+            map.getView().setZoom(14);
+        },
+        (error) => console.log("Geolocation misslyckades:", error)
+    );
+
+    // --- Set up the click listener ---
+    map.on('click', function (event) {
+        // Use the coordinate directly from the event in the map's projection
+        const clickedCoords = event.coordinate;
+
+        // Optional: Convert to Lon/Lat for display or other purposes if needed
+        const clickedLonLat = ol.proj.toLonLat(clickedCoords);
+        //console.log("Plats vald (Map Projection):", clickedCoords);
+        console.log("Plats vald (Lon/Lat):", clickedLonLat);
+
+        //Get coords for recommendations from server
+        fetch(`/api/locations/recommendations?lat=${clickedLonLat[1]}&lon=${clickedLonLat[0]}`)
+            .then(response => response.json())
+            .then(data => {
+                // --- Optional: Clear previous markers if you only want one at a time ---
+                markerSource.clear();
+                // --- End Optional ---
+
+                // Clear the recommendations div before adding new data
+                document.getElementById("recommendations").innerHTML = '';
+
+                // Loop through recommendations and create markers on the map
+                data.forEach((location) => {
+                    const lonLat = ol.proj.fromLonLat([location.longitude, location.latitude]);
+
+                    console.log(lonLat);
+                    // Create a marker for each recommended location
+                    const marker = new ol.Feature({
+                        geometry: new ol.geom.Point(lonLat),
+                        name: location.activityName,
+                    });
+                    //console.log(marker);
+
+                    // Optional: Style this specific marker (overrides layer style if set)
+                    // If you want all markers to look the same, it's better to style the layer (see step 2)
+                    marker.setStyle(
+                        new ol.style.Style({
+                            image: new ol.style.Icon({
+                                src: 'https://openlayers.org/en/v4.6.5/examples/data/icon.png',
+                                scale: 1.0, // Adjust size
+                                anchor: [0.5, 1] // Often good to anchor icon at its bottom-middle
+                            })
+                        })
+                    );
+
+                    // Also, display the name of the activity in the recommendations list
+                    document.getElementById("recommendations").innerHTML += `<p>${location.activityName}</p>`;
+
+                    // Add the new marker feature to the *existing* source
+                    markerSource.addFeature(marker);
+                });
+            });
+    });
+
+</script>
+
+</body>
+</html>

@@ -31,6 +31,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable()) // Disable CSRF for simplicity during development
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/api/locations/**").permitAll()
                         // Explicitly permit access to login page, registration page, and static resources
                         .requestMatchers("/login", "/login?error", "/login?logout", "/register", "/api/register").permitAll()
                         .requestMatchers("/", "/home", "/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
