@@ -1,9 +1,11 @@
+
 package com.example.tourismroullete.service;
 
 import com.example.tourismroullete.entities.Category;
 import com.example.tourismroullete.repositories.CategoryRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +23,8 @@ public class CategoryService {
     }
 
     public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
+        // Return categories sorted by ID in ascending order
+        return categoryRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
     }
 
     public Category getCategoryById(Long id) {

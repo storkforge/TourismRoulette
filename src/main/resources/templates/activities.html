@@ -59,25 +59,69 @@
       font-weight: bold;
       margin-bottom: 10px;
     }
+    .search-box {
+      margin-bottom: 15px;
+    }
+    .search-input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
     .category-filters {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
       margin-bottom: 15px;
     }
-    .category-filter {
+    .category-checkbox {
+      display: none;
+    }
+    .category-label {
+      display: inline-block;
       padding: 6px 12px;
       background-color: #e9ecef;
       border-radius: 20px;
       cursor: pointer;
       transition: background-color 0.3s;
     }
-    .category-filter:hover {
+    .category-label:hover {
       background-color: #dee2e6;
     }
-    .category-filter.active {
+    .category-checkbox:checked + .category-label {
       background-color: #4a90e2;
       color: white;
+    }
+    .filter-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 15px;
+    }
+    .filter-button {
+      padding: 8px 16px;
+      background-color: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .filter-button:hover {
+      background-color: #3a7bc8;
+    }
+    .clear-button {
+      padding: 8px 16px;
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .clear-button:hover {
+      background-color: #5a6268;
     }
     .activity-grid {
       display: grid;
@@ -177,7 +221,7 @@
 <body>
 <div class="container">
   <header>
-    <h1 class="page-title" th:text="${category != null ? 'Activities in ' + category.name : 'All Activities'}">Activities</h1>
+    <h1 class="page-title">Activities</h1>
     <div class="nav-links">
       <a href="/dashboard" class="nav-link">Dashboard</a>
       <a href="/categories" class="nav-link">Categories</a>
@@ -195,20 +239,35 @@
 
   <!-- Filter Section -->
   <div class="filter-section">
-    <div class="filter-title">Filter by Category</div>
-    <div class="category-filters">
-      <a href="/activities" class="category-filter" th:classappend="${category == null ? 'active' : ''}">All</a>
-      <a th:each="cat : ${categories}"
-         th:href="@{/activities/category/{id}(id=${cat.id})}"
-         class="category-filter"
-         th:classappend="${category != null && category.id == cat.id ? 'active' : ''}"
-         th:text="${cat.name}">Category Name</a>
-    </div>
+    <!-- IMPORTANT: Changed form action from "/activities/search" to "/activities/search" -->
+    <form id="searchForm" action="/activities/search" method="get">
+      <!-- Search Box -->
+      <div class="search-box">
+        <div class="filter-title">Search Activities</div>
+        <input type="text" name="term" class="search-input" placeholder="Search by name or description..." th:value="${param.term}">
+      </div>
+
+      <!-- Category Filter -->
+      <div class="filter-title">Filter by Categories</div>
+      <div class="category-filters">
+        <div th:each="cat : ${categories}">
+          <input type="checkbox" name="categoryIds" th:id="'cat-' + ${cat.id}" th:value="${cat.id}"
+                 class="category-checkbox" th:checked="${selectedCategories != null && selectedCategories.contains(cat.id)}">
+          <label th:for="'cat-' + ${cat.id}" class="category-label" th:text="${cat.name}">Category Name</label>
+        </div>
+      </div>
+
+      <!-- Filter Actions -->
+      <div class="filter-actions">
+        <button type="submit" class="filter-button">Apply Filters</button>
+        <button type="button" id="clearFilters" class="clear-button">Clear Filters</button>
+      </div>
+    </form>
   </div>
 
   <!-- Empty state message -->
   <div th:if="${#lists.isEmpty(activities)}" class="empty-message">
-    <p>No activities found. Click "Add Activity" to create one.</p>
+    <p>No activities found. Try adjusting your search filters or click "Add Activity" to create one.</p>
   </div>
 
   <!-- Activities grid -->
@@ -228,5 +287,24 @@
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Clear filters button
+    document.getElementById('clearFilters').addEventListener('click', function() {
+      // Clear search term
+      document.querySelector('input[name="term"]').value = '';
+
+      // Uncheck all category checkboxes
+      const checkboxes = document.querySelectorAll('input[name="categoryIds"]');
+      checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+      });
+
+      // Submit the form to refresh results
+      document.getElementById('searchForm').submit();
+    });
+  });
+</script>
 </body>
 </html>

@@ -1,20 +1,16 @@
 package com.example.tourismroullete.controller;
 
 import com.example.tourismroullete.entities.Activity;
+import com.example.tourismroullete.entities.Category;
 import com.example.tourismroullete.service.ActivityService;
 import com.example.tourismroullete.service.CategoryService;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Controller
 public class ActivityController {
@@ -28,27 +24,71 @@ public class ActivityController {
         this.categoryService = categoryService;
     }
 
-    // Web UI endpoints
-
     @GetMapping("/activities")
     public String listActivities(Model model) {
-        model.addAttribute("activities", activityService.getAllActivities());
-        model.addAttribute("categories", categoryService.getAllCategories());
+        List<Activity> activities = activityService.getAllActivities();
+        List<Category> categories = categoryService.getAllCategories();
+
+        model.addAttribute("activities", activities);
+        model.addAttribute("categories", categories);
+        model.addAttribute("selectedCategories", Collections.emptyList());
+
         return "activities";
     }
 
     @GetMapping("/activities/category/{categoryId}")
     public String listActivitiesByCategory(@PathVariable Long categoryId, Model model) {
-        model.addAttribute("activities", activityService.getActivitiesByCategory(categoryId));
-        model.addAttribute("category", categoryService.getCategoryById(categoryId));
-        model.addAttribute("categories", categoryService.getAllCategories());
+        List<Activity> activities = activityService.getActivitiesByCategory(categoryId);
+        List<Category> categories = categoryService.getAllCategories();
+
+        model.addAttribute("activities", activities);
+        model.addAttribute("categories", categories);
+        model.addAttribute("selectedCategories", Collections.singletonList(categoryId));
+
+        return "activities";
+    }
+
+    @GetMapping("/activities/search")
+    public String searchActivities(
+            @RequestParam(required = false) String term,
+            @RequestParam(required = false) List<Long> categoryIds,
+            Model model) {
+
+        List<Activity> activities;
+
+        // Convert List to Set if needed for the service method
+        Set<Long> categoryIdSet = categoryIds != null ? new HashSet<>(categoryIds) : null;
+
+        if (term != null && !term.trim().isEmpty()) {
+            if (categoryIdSet != null && !categoryIdSet.isEmpty()) {
+                // Search by term and filter by categories
+                activities = activityService.searchActivities(term, categoryIdSet);
+            } else {
+                // Search by term only
+                activities = activityService.searchActivities(term, null);
+            }
+        } else if (categoryIdSet != null && !categoryIdSet.isEmpty()) {
+            // Filter by categories only
+            activities = activityService.getActivitiesByCategories(categoryIdSet, false);
+        } else {
+            // No filters applied, show all activities
+            activities = activityService.getAllActivities();
+        }
+
+        // Add all necessary attributes to the model
+        List<Category> categories = categoryService.getAllCategories();
+        model.addAttribute("activities", activities);
+        model.addAttribute("categories", categories);
+        model.addAttribute("selectedCategories", categoryIds != null ? categoryIds : Collections.emptyList());
+
         return "activities";
     }
 
     @GetMapping("/activities/{id}")
     public String viewActivity(@PathVariable Long id, Model model) {
-        model.addAttribute("activity", activityService.getActivityById(id));
-        return "activity-view";
+        Activity activity = activityService.getActivityById(id);
+        model.addAttribute("activity", activity);
+        return "activity-details";
     }
 
     @GetMapping("/activities/new")
@@ -60,106 +100,68 @@ public class ActivityController {
 
     @GetMapping("/activities/edit/{id}")
     public String editActivityForm(@PathVariable Long id, Model model) {
-        model.addAttribute("activity", activityService.getActivityById(id));
+        Activity activity = activityService.getActivityById(id);
+        model.addAttribute("activity", activity);
         model.addAttribute("categories", categoryService.getAllCategories());
         return "activity-form";
     }
 
-    // Form submission handlers
-
     @PostMapping("/activities")
     public String createActivity(
-            @Valid @ModelAttribute("activity") Activity activity,
-            BindingResult result,
+            @ModelAttribute Activity activity,
             @RequestParam(required = false) Set<Long> categoryIds,
-            Model model,
-            RedirectAttributes redirectAttributes) {
-
-        if (result.hasErrors()) {
-            model.addAttribute("categories", categoryService.getAllCategories());
-            return "activity-form";
-        }
-
-        if (categoryIds == null || categoryIds.isEmpty()) {
-            model.addAttribute("categoryError", "Please select at least one category");
-            model.addAttribute("categories", categoryService.getAllCategories());
-            return "activity-form";
-        }
+            Model model) {
 
         try {
             activityService.createActivity(activity, categoryIds);
-            redirectAttributes.addFlashAttribute("successMessage", "Activity created successfully!");
+            return "redirect:/activities";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error creating activity: " + e.getMessage());
+            model.addAttribute("errorMessage", "Error creating activity: " + e.getMessage());
+            model.addAttribute("categories", categoryService.getAllCategories());
+            return "activity-form";
         }
-
-        return "redirect:/activities";
     }
 
     @PostMapping("/activities/{id}")
     public String updateActivity(
             @PathVariable Long id,
-            @Valid @ModelAttribute("activity") Activity activity,
-            BindingResult result,
+            @ModelAttribute Activity activity,
             @RequestParam(required = false) Set<Long> categoryIds,
-            Model model,
-            RedirectAttributes redirectAttributes) {
-
-        if (result.hasErrors()) {
-            model.addAttribute("categories", categoryService.getAllCategories());
-            return "activity-form";
-        }
-
-        if (categoryIds == null || categoryIds.isEmpty()) {
-            model.addAttribute("categoryError", "Please select at least one category");
-            model.addAttribute("categories", categoryService.getAllCategories());
-            return "activity-form";
-        }
+            Model model) {
 
         try {
             activityService.updateActivity(id, activity, categoryIds);
-            redirectAttributes.addFlashAttribute("successMessage", "Activity updated successfully!");
+            return "redirect:/activities";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error updating activity: " + e.getMessage());
+            model.addAttribute("errorMessage", "Error updating activity: " + e.getMessage());
+            model.addAttribute("categories", categoryService.getAllCategories());
+            return "activity-form";
         }
-
-        return "redirect:/activities";
     }
 
     @PostMapping("/activities/delete/{id}")
-    public String deleteActivity(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        try {
-            activityService.deleteActivity(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Activity deleted successfully!");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting activity: " + e.getMessage());
-        }
+    public String deleteActivity(@PathVariable Long id) {
+        activityService.deleteActivity(id);
         return "redirect:/activities";
     }
 
-    // REST API endpoints
-
+    // API endpoints
     @GetMapping("/api/activities")
     @ResponseBody
-    public List<Activity> getAllActivities() {
+    public List<Activity> getAllActivitiesApi() {
         return activityService.getAllActivities();
     }
 
     @GetMapping("/api/activities/{id}")
     @ResponseBody
-    public ResponseEntity<Activity> getActivityById(@PathVariable Long id) {
-        return ResponseEntity.ok(activityService.getActivityById(id));
-    }
-
-    @GetMapping("/api/activities/category/{categoryId}")
-    @ResponseBody
-    public List<Activity> getActivitiesByCategory(@PathVariable Long categoryId) {
-        return activityService.getActivitiesByCategory(categoryId);
+    public ResponseEntity<Activity> getActivityByIdApi(@PathVariable Long id) {
+        Activity activity = activityService.getActivityById(id);
+        return ResponseEntity.ok(activity);
     }
 
     @GetMapping("/api/activities/filter")
     @ResponseBody
-    public List<Activity> filterActivities(
+    public List<Activity> filterActivitiesApi(
             @RequestParam(required = false) Set<Long> categoryIds,
             @RequestParam(defaultValue = "false") boolean matchAll) {
         return activityService.getActivitiesByCategories(categoryIds, matchAll);
@@ -167,76 +169,9 @@ public class ActivityController {
 
     @GetMapping("/api/activities/search")
     @ResponseBody
-    public List<Activity> searchActivities(
+    public List<Activity> searchActivitiesApi(
             @RequestParam String term,
             @RequestParam(required = false) Set<Long> categoryIds) {
         return activityService.searchActivities(term, categoryIds);
-    }
-
-    @PostMapping("/api/activities")
-    @ResponseBody
-    public ResponseEntity<Activity> createActivityApi(
-            @Valid @RequestBody Activity activity,
-            @RequestParam(required = false) Set<Long> categoryIds) {
-        Activity newActivity = activityService.createActivity(activity, categoryIds);
-        return new ResponseEntity<>(newActivity, HttpStatus.CREATED);
-    }
-
-    @PutMapping("/api/activities/{id}")
-    @ResponseBody
-    public ResponseEntity<Activity> updateActivityApi(
-            @PathVariable Long id,
-            @Valid @RequestBody Activity activity,
-            @RequestParam(required = false) Set<Long> categoryIds) {
-        Activity updatedActivity = activityService.updateActivity(id, activity, categoryIds);
-        return ResponseEntity.ok(updatedActivity);
-    }
-
-    @DeleteMapping("/api/activities/{id}")
-    @ResponseBody
-    public ResponseEntity<Void> deleteActivityApi(@PathVariable Long id) {
-        activityService.deleteActivity(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @PostMapping("/api/activities/{activityId}/categories/{categoryId}")
-    @ResponseBody
-    public ResponseEntity<Activity> addCategoryToActivity(
-            @PathVariable Long activityId,
-            @PathVariable Long categoryId) {
-        Activity activity = activityService.addCategoryToActivity(activityId, categoryId);
-        return ResponseEntity.ok(activity);
-    }
-
-    @DeleteMapping("/api/activities/{activityId}/categories/{categoryId}")
-    @ResponseBody
-    public ResponseEntity<Activity> removeCategoryFromActivity(
-            @PathVariable Long activityId,
-            @PathVariable Long categoryId) {
-        Activity activity = activityService.removeCategoryFromActivity(activityId, categoryId);
-        return ResponseEntity.ok(activity);
-    }
-
-    @GetMapping("/api/activities/random")
-    @ResponseBody
-    public ResponseEntity<Activity> getRandomActivity(
-            @RequestParam(required = false) Set<Long> categoryIds) {
-        List<Activity> activities;
-
-        if (categoryIds != null && !categoryIds.isEmpty()) {
-            activities = activityService.getActivitiesByCategories(categoryIds, false);
-        } else {
-            activities = activityService.getAllActivities();
-        }
-
-        if (activities.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        // Get a random activity from the list
-        int randomIndex = (int) (Math.random() * activities.size());
-        Activity randomActivity = activities.get(randomIndex);
-
-        return ResponseEntity.ok(randomActivity);
     }
 }

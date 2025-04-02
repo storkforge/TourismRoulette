@@ -26,4 +26,17 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
 
     @Query("SELECT a FROM Activity a WHERE LOWER(a.name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR LOWER(a.description) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
     List<Activity> searchByTerm(@Param("searchTerm") String searchTerm);
+
+    // Find activities by category
+    List<Activity> findByCategoriesId(Long categoryId);
+
+    // Find activities by multiple categories
+    List<Activity> findByCategoriesIdIn(List<Long> categoryIds);
+
+    // Search activities by name or description
+    List<Activity> findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(String name, String description);
+
+    // Search activities by name or description and filter by categories
+    List<Activity> findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCaseAndCategoriesIdIn(
+            String name, String description, List<Long> categoryIds);
 }

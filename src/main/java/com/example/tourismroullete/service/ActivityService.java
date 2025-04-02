@@ -39,6 +39,25 @@ public class ActivityService {
         return activityRepository.findByCategoryId(categoryId);
     }
 
+    public List<Activity> getActivitiesByCategories(List<Long> categoryIds) {
+        return activityRepository.findByCategoriesIdIn(categoryIds);
+    }
+
+    public List<Activity> searchActivitiesByTerm(String term) {
+        String searchTerm = "%" + term.toLowerCase() + "%";
+        return activityRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(searchTerm, searchTerm);
+    }
+
+    public List<Activity> searchActivitiesByTermAndCategories(String term, List<Long> categoryIds) {
+        String searchTerm = "%" + term.toLowerCase() + "%";
+        return activityRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCaseAndCategoriesIdIn(
+                searchTerm, searchTerm, categoryIds);
+    }
+
+    public Activity saveActivity(Activity activity) {
+        return activityRepository.save(activity);
+    }
+
     public List<Activity> getActivitiesByCategories(Set<Long> categoryIds, boolean matchAll) {
         if (categoryIds == null || categoryIds.isEmpty()) {
             return getAllActivities();
