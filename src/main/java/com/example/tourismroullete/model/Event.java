@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
 
-import com.example.tourismroullete.entities.UserEnt;
+import com.example.tourismroullete.entities.User;
 import jakarta.persistence.*;
 
 @Entity
@@ -20,7 +20,7 @@ public class Event {
     private LocalDateTime eventDate;
 
     @ManyToOne
-    private UserEnt organizer;
+    private User organizer;
 
     @ManyToMany
     @JoinTable(
@@ -29,7 +29,7 @@ public class Event {
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
 
-    private List<UserEnt> participants = new ArrayList<>(); //Users who are attending the event
+    private List<User> participants = new ArrayList<>(); //Users who are attending the event
 
     public Long getId() {
         return id;
@@ -63,19 +63,19 @@ public class Event {
         this.eventDate = eventDate;
     }
 
-    public UserEnt getOrganizer() {
+    public User getOrganizer() {
         return organizer;
     }
 
-    public void setOrganizer(UserEnt organizer) {
+    public void setOrganizer(User organizer) {
         this.organizer = organizer;
     }
 
-    public List<UserEnt> getParticipants() {
+    public List<User> getParticipants() {
         return participants;
     }
 
-    public void setParticipants(List<UserEnt> participants) {
+    public void setParticipants(List<User> participants) {
         this.participants = participants;
     }
 }

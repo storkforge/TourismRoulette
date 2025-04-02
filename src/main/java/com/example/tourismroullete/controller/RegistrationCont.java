@@ -1,6 +1,6 @@
 package com.example.tourismroullete.controller;
 
-import com.example.tourismroullete.entities.UserEnt;
+import com.example.tourismroullete.entities.User;
 import com.example.tourismroullete.DTOs.RegDTO;
 import com.example.tourismroullete.service.UserService;
 import jakarta.validation.Valid;
@@ -36,19 +36,23 @@ public class RegistrationCont {
             result.rejectValue("confirmPassword", "error.registrationDto", "Passwords do not match");
         }
         // Check if username is available
-        if (!userService.isUsernameAvailable(registrationDto.getUsername())) {
+        if (userService.isUsernameAvailable(registrationDto.getUsername())) {
             result.rejectValue("username", "error.registrationDto", "Username is already taken");
         }
         // Check if email is available
-        if (!userService.isEmailAvailable(registrationDto.getEmail())) {
+        if (userService.isEmailAvailable(registrationDto.getEmail())) {
             result.rejectValue("email", "error.registrationDto", "Email is already registered");
         }
         if (result.hasErrors()) {
             return "register";
         }
-        UserEnt user = new UserEnt();
+
+        // Encode the password before saving it
+        String encodedPassword = userService.encodePassword(registrationDto.getPassword());
+
+        User user = new User();
         user.setUsername(registrationDto.getUsername());
-        user.setPassword(registrationDto.getPassword());
+        user.setPassword(encodedPassword);
         user.setEmail(registrationDto.getEmail());
         user.setFirstName(registrationDto.getFirstName());
         user.setLastName(registrationDto.getLastName());

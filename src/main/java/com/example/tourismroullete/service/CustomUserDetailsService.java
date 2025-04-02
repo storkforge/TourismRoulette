@@ -1,39 +1,58 @@
 package com.example.tourismroullete.service;
 
-import com.example.tourismroullete.entities.UserEnt;
-import com.example.tourismroullete.repository.UserRepo;
+import com.example.tourismroullete.entities.User;
+import com.example.tourismroullete.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 
 import java.util.Collections;
 
 @Service
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
-    private final UserRepo userRepository;
+
+    private static final Logger logger = LoggerFactory.getLogger(CustomUserDetailsService.class);
+
+    private final UserRepository userRepository;
+    private final @Lazy PasswordEncoder passwordEncoder;  // Lazy initialization
 
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        UserEnt user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
+        logger.info("Attempting to load user by username: {}", username);
 
-        return new User(
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> {
+                    logger.error("User not found with username: {}", username);
+                    return new UsernameNotFoundException("User not found with username: " + username);
+                });
+
+        logger.info("User found: {}", user.getUsername());
+        logger.info("Stored hashed password: {}", user.getPassword());
+
+        // Just return the UserDetails; Spring Security will handle password checking
+        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
                 user.isEnabled(),
                 true, // accountNonExpired
                 true, // credentialsNonExpired
                 true, // accountNonLocked
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole()))
+                Collections.singletonList(new SimpleGrantedAuthority(user.getRole()))
         );
+
+        logger.info("UserDetails created for user: {}", user.getUsername());
+
+        return userDetails;
     }
-
 }
-

@@ -1,46 +1,44 @@
 package com.example.tourismroullete.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import com.example.tourismroullete.entities.UserEnt;
-import com.example.tourismroullete.repository.UserRepo;
+import com.example.tourismroullete.entities.User;
+import com.example.tourismroullete.repository.UserRepository;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserRepo userRepository;
+    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-
-    public UserEnt registerNewUser(UserEnt user) {
-        // Check if username already exists
-        if (userRepository.existsByUsername(user.getUsername())) {
-            throw new RuntimeException("Username already exists");
-        }
-        // Check if email already exists
-        if (userRepository.existsByEmail(user.getEmail())) {
-            throw new RuntimeException("Email already exists");
-        }
-        // Encode the password
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-
-        // Set default role if not specified
-        if (user.getRole() == null || user.getRole().isEmpty()) {
-            user.setRole("USER");
-        }
-
-        return userRepository.save(user);
-
+    // Method to encode the password
+    public String encodePassword(String rawPassword) {
+        return passwordEncoder.encode(rawPassword);
     }
 
+    // Method to check if username is available
     public boolean isUsernameAvailable(String username) {
-        return !userRepository.existsByUsername(username);
+        return userRepository.existsByUsername(username);
     }
+
+    // Method to check if email is available
     public boolean isEmailAvailable(String email) {
-        return !userRepository.existsByEmail(email);
+        return userRepository.existsByEmail(email);
+    }
+
+    // Method to find a user by username
+    public Optional<User> findByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
+    public User registerNewUser(User user) {
+        // Encode the password before saving it
+        String encodedPassword = encodePassword(user.getPassword());
+        user.setPassword(encodedPassword);
+        return userRepository.save(user);  // Save the user to the DB and return it
     }
 }
-
-

@@ -1,6 +1,6 @@
 package com.example.tourismroullete.service;
 
-import com.example.tourismroullete.entities.UserEnt;
+import com.example.tourismroullete.entities.User;
 import com.example.tourismroullete.repository.EventRepository;
 import org.springframework.stereotype.Service;
 import com.example.tourismroullete.model.Event;
@@ -25,7 +25,7 @@ public class EventService {
         return eventRepository.save(event);
     }
 
-    public void joinEvent(Long eventId, UserEnt user) {
+    public void joinEvent(Long eventId, User user) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
         event.getParticipants().add(user);

@@ -1,7 +1,7 @@
 package com.example.tourismroullete.controller;
 
 import com.example.tourismroullete.DTOs.RegDTO;
-import com.example.tourismroullete.entities.UserEnt;
+import com.example.tourismroullete.entities.User;
 import com.example.tourismroullete.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,14 +30,13 @@ public class RegistrationRestController {
         // Check if passwords match
         if (!registrationDto.getPassword().equals(registrationDto.getConfirmPassword())) {
             result.rejectValue("confirmPassword", "error.registrationDto", "Passwords do not match");
-
         }
         // Check if username is available
-        if (!userService.isUsernameAvailable(registrationDto.getUsername())) {
+        if (userService.isUsernameAvailable(registrationDto.getUsername())) {
             result.rejectValue("username", "error.registrationDto", "Username is already taken");
         }
         // Check if email is available
-        if (!userService.isEmailAvailable(registrationDto.getEmail())) {
+        if (userService.isEmailAvailable(registrationDto.getEmail())) {
             result.rejectValue("email", "error.registrationDto", "Email is already registered");
         }
         if (result.hasErrors()) {
@@ -46,18 +45,19 @@ public class RegistrationRestController {
                 errors.put(error.getField(), error.getDefaultMessage());
             }
             return ResponseEntity.badRequest().body(errors);
-
         }
-        UserEnt user = new UserEnt();
+
+        User user = new User();
         user.setUsername(registrationDto.getUsername());
-        user.setPassword(registrationDto.getPassword());
+        // Encode the password before setting it
+        String encodedPassword = userService.encodePassword(registrationDto.getPassword());
+        user.setPassword(encodedPassword);
         user.setEmail(registrationDto.getEmail());
         user.setFirstName(registrationDto.getFirstName());
         user.setLastName(registrationDto.getLastName());
 
-
         try {
-            UserEnt savedUser = userService.registerNewUser(user);
+            User savedUser = userService.registerNewUser(user);
             Map<String, Object> response = new HashMap<>();
             response.put("message", "User registered successfully");
             response.put("username", savedUser.getUsername());
@@ -68,6 +68,5 @@ public class RegistrationRestController {
             return ResponseEntity.badRequest().body(errorResponse);
         }
 
-
-    }
+}
 }
