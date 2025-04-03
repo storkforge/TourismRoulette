@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="sv" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tourism Roulette Karta</title>
+    <script src="https://cdn.jsdelivr.net/npm/ol/dist/ol.js"></script>
+    <style>
+        #map {
+            width: 100%;
+            height: 500px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Välj en plats på kartan</h1>
+<div id="map"></div>
+<div id="recommendations">
+    <h2>Rekommenderade aktiviteter</h2>
+    <ul>
+        <li th:each="location : ${recommendations}" th:text="${location.activityName}"></li>
+    </ul>
+</div>
+
+<script>
+    // Get user's initial location from the backend if available
+    var userLat = /*[[${userLocation != null ? userLocation.latitude : 59.3293}]]*/ 59.3293;
+    var userLon = /*[[${userLocation != null ? userLocation.longitude : 18.0686}]]*/ 18.0686;
+
+    // Create the map
+    var map = new ol.Map({
+        target: 'map',
+        layers: [new ol.layer.Tile({source: new ol.source.OSM()})],
+        view: new ol.View({center: ol.proj.fromLonLat([userLon, userLat]), zoom: 12})
+    });
+
+    // Create a single source for markers
+    const markerSource = new ol.source.Vector();
+    const markerLayer = new ol.layer.Vector({ source: markerSource });
+    map.addLayer(markerLayer);
+
+    // Function to add a marker
+    function addMarker(lon, lat, name) {
+        const lonLat = ol.proj.fromLonLat([lon, lat]);
+        const marker = new ol.Feature({
+            geometry: new ol.geom.Point(lonLat),
+            name: name,
+        });
+
+        marker.setStyle(new ol.style.Style({
+            image: new ol.style.Icon({
+                src: 'https://openlayers.org/en/v4.6.5/examples/data/icon.png',
+                scale: 1.0,
+                anchor: [0.5, 1]
+            })
+        }));
+
+        markerSource.addFeature(marker);
+    }
+
+    // Add pre-loaded markers from Thymeleaf
+    var locations = /*[[${recommendations}]]*/ [];
+    locations.forEach(location => {
+        addMarker(location.longitude, location.latitude, location.activityName);
+    });
+
+    // Geolocation: Center the map on user's actual location if allowed
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            var userCoords = ol.proj.fromLonLat([position.coords.longitude, position.coords.latitude]);
+            map.getView().setCenter(userCoords);
+            map.getView().setZoom(14);
+        },
+        (error) => console.log("Geolocation misslyckades:", error)
+    );
+
+    // Handle map clicks to fetch new recommendations
+    map.on('click', function (event) {
+        const clickedLonLat = ol.proj.toLonLat(event.coordinate);
+        console.log("Plats vald (Lon/Lat):", clickedLonLat);
+
+        fetch(`/api/locations/recommendations?lat=${clickedLonLat[1]}&lon=${clickedLonLat[0]}`)
+            .then(response => response.json())
+            .then(data => {
+                markerSource.clear(); // Clear existing markers
+                document.getElementById("recommendations").innerHTML = "<h2>Rekommenderade aktiviteter</h2><ul>";
+
+                data.forEach(location => {
+                    addMarker(location.longitude, location.latitude, location.activityName);
+                    document.getElementById("recommendations").innerHTML += `<li>${location.activityName}</li>`;
+                });
+
+                document.getElementById("recommendations").innerHTML += "</ul>";
+            });
+    });
+</script>
+
+</body>
+</html>
