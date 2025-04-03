@@ -24,6 +24,8 @@ public class ActivityController {
         this.categoryService = categoryService;
     }
 
+    // Web UI endpoints
+
     @GetMapping("/activities")
     public String listActivities(Model model) {
         List<Activity> activities = activityService.getAllActivities();
@@ -145,7 +147,8 @@ public class ActivityController {
         return "redirect:/activities";
     }
 
-    // API endpoints
+    // REST API endpoints
+
     @GetMapping("/api/activities")
     @ResponseBody
     public List<Activity> getAllActivitiesApi() {

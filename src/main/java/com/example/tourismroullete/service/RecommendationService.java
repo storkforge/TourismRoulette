@@ -1,6 +1,6 @@
 package com.example.tourismroullete.service;
 
-import com.example.tourismroullete.model.Activity;
+import com.example.tourismroullete.entities.Activity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
