@@ -1,6 +1,6 @@
 package com.example.tourismroullete.controller;
 
-import com.example.tourismroullete.model.Activity;
+import com.example.tourismroullete.entities.Activity;
 import com.example.tourismroullete.service.RecommendationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

@@ -1,13 +1,21 @@
 package com.example.tourismroullete.entities;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
 @Table(name = "activities")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Activity {
 
     @Id
@@ -15,9 +23,11 @@ public class Activity {
     private Long id;
 
     @Column(nullable = false)
+    @JsonProperty("activityName")
     private String name;
 
     @Column(length = 2000)
+    @JsonProperty("activityDescription")
     private String description;
 
     private String location;
@@ -38,11 +48,16 @@ public class Activity {
     )
     private Set<Category> categories = new HashSet<>();
 
-    // Default constructor
-    public Activity() {
-    }
+    // Additional non-persistent fields for JSON mapping
+    @Transient
+    @JsonProperty("latitude")
+    private double latitude;
 
-    // Constructor with fields
+    @Transient
+    @JsonProperty("longitude")
+    private double longitude;
+
+    // Constructor with full fields (if needed)
     public Activity(Long id, String name, String description, String location, Integer durationMinutes,
                     BigDecimal price, String imageUrl, Set<Category> categories) {
         this.id = id;
@@ -55,69 +70,12 @@ public class Activity {
         this.categories = categories;
     }
 
-    // Getters and Setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
+    // Custom constructor to support RecommendationService (using Lombok for getters/setters)
+    public Activity(String name, String description, double latitude, double longitude) {
         this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
         this.description = description;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public Integer getDurationMinutes() {
-        return durationMinutes;
-    }
-
-    public void setDurationMinutes(Integer durationMinutes) {
-        this.durationMinutes = durationMinutes;
-    }
-
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public void setPrice(BigDecimal price) {
-        this.price = price;
-    }
-
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
-
-    public Set<Category> getCategories() {
-        return categories;
-    }
-
-    public void setCategories(Set<Category> categories) {
-        this.categories = categories;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
     // Helper methods for managing the bidirectional relationship
@@ -138,9 +96,8 @@ public class Activity {
         if (o == null || getClass() != o.getClass()) return false;
 
         Activity activity = (Activity) o;
-
-        if (id != null ? !id.equals(activity.id) : activity.id != null) return false;
-        return name != null ? name.equals(activity.name) : activity.name == null;
+        if (!Objects.equals(id, activity.id)) return false;
+        return Objects.equals(name, activity.name);
     }
 
     @Override
