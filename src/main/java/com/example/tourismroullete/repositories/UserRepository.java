@@ -1,4 +1,4 @@
-package com.example.tourismroullete.repository;
+package com.example.tourismroullete.repositories;
 
 import com.example.tourismroullete.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;

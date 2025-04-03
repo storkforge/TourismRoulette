@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.example.tourismroullete.entities.User;
-import com.example.tourismroullete.repository.UserRepository;
+import com.example.tourismroullete.repositories.UserRepository;
 
 import java.util.Optional;
 

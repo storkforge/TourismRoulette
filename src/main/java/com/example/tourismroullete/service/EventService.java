@@ -1,7 +1,7 @@
 package com.example.tourismroullete.service;
 
 import com.example.tourismroullete.entities.User;
-import com.example.tourismroullete.repository.EventRepository;
+import com.example.tourismroullete.repositories.EventRepository;
 import org.springframework.stereotype.Service;
 import com.example.tourismroullete.model.Event;
 

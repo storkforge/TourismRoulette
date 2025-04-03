@@ -1,4 +1,4 @@
-package com.example.tourismroullete.repository;
+package com.example.tourismroullete.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

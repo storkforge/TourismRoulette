@@ -1,7 +1,7 @@
 package com.example.tourismroullete.service;
 
 import com.example.tourismroullete.entities.User;
-import com.example.tourismroullete.repository.UserRepository;
+import com.example.tourismroullete.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
