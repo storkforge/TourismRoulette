@@ -5,8 +5,10 @@ import com.example.tourismroullete.service.RecommendationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.example.tourismroullete.Utils.distanceUtils;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/locations")
@@ -15,6 +17,8 @@ public class LocationController {
 
     @Autowired
     private RecommendationService recommendationService;
+
+    private static final double MAX_DISTANCE_KM = 5.0; // Limit recommendations to 5 km radius
 
 
     @GetMapping("/recommendations")
@@ -28,8 +32,13 @@ public class LocationController {
             lon = 18.0687;  // Default longitude (Stockholm)
         }
 
+
         List<Activity> activities = recommendationService.getActivities(lat, lon);
+
         return ResponseEntity.ok(activities);
+
+
+
     }
 
 
