@@ -12,11 +12,9 @@ public class RecommendationService {
     public List<Activity> getActivities(double lat, double lon) {
         // Creating a list of activities (static sample data)
         return List.of(
+                new Activity("User Location", "Markera önskad plats", lat, lon),
                 // Example Activity 1: Gamla Stan
-                new Activity("Besök Ullevi", "Fotball", 57.705822, 11.987365),
-
-                // Example Activity 2: Restaurant in the clicked location
-                new Activity("Prova lokala restauranger", "Restaurant", lat, lon)
+                new Activity("Besök Ullevi", "Fotball", 57.705822, 11.987365)
         );
     }
 }

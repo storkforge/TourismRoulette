@@ -71,11 +71,11 @@ public class Activity {
     }
 
     // Custom constructor to support RecommendationService (using Lombok for getters/setters)
-    public Activity(String name, String description, double latitude, double longitude) {
+    public Activity(String name, String description, double lat, double lon) {
         this.name = name;
         this.description = description;
-        this.latitude = latitude;
-        this.longitude = longitude;
+        this.latitude = lat;
+        this.longitude = lon;
     }
 
     // Helper methods for managing the bidirectional relationship
