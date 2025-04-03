@@ -47,12 +47,10 @@ public class RegistrationCont {
             return "register";
         }
 
-        // Encode the password before saving it
-        String encodedPassword = userService.encodePassword(registrationDto.getPassword());
 
         User user = new User();
         user.setUsername(registrationDto.getUsername());
-        user.setPassword(encodedPassword);
+        user.setPassword(registrationDto.getConfirmPassword());
         user.setEmail(registrationDto.getEmail());
         user.setFirstName(registrationDto.getFirstName());
         user.setLastName(registrationDto.getLastName());

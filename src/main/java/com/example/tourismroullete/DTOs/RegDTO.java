@@ -13,7 +13,7 @@ public class RegDTO {
     private String username;
 
     @NotBlank(message = "Password is required")
-    @Size(min = 12, message = "Password must be at least 6 characters")
+    @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
 
     @NotBlank(message = "Password confirmation is required")
