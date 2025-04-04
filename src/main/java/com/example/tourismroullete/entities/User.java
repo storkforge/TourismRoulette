@@ -43,7 +43,7 @@ public class User {
     private boolean enabled = true;
 
     @Column(name = "role")
-    private String role = "USER";
+    private String role = "ROLE_USER";
 
     @PrePersist
     protected void onCreate() {
