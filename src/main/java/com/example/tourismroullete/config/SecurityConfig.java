@@ -5,19 +5,23 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
 @Configuration
 public class SecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService;
+    private final AuthenticationSuccessHandler successHandler;
 
-    public SecurityConfig(@Lazy CustomUserDetailsService customUserDetailsService) {
+    public SecurityConfig(
+            @Lazy CustomUserDetailsService customUserDetailsService,
+            CustomAuthenticationSuccessHandler successHandler
+    ) {
         this.customUserDetailsService = customUserDetailsService;
+        this.successHandler = successHandler;
     }
 
     @Bean
@@ -46,13 +50,13 @@ public class SecurityConfig {
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
-                        .defaultSuccessUrl("/dashboard", true)
+                        .successHandler(successHandler)
                         .failureUrl("/login?error=true")
                         .permitAll()
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/login")
-                        .defaultSuccessUrl("/dashboard")
+                        .successHandler(successHandler)
                 )
                 .logout(logout -> logout
                         .logoutUrl("/perform_logout")
