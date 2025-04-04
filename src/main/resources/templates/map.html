@@ -22,23 +22,42 @@
         <li th:each="location : ${recommendations}" th:text="${location.activityName}"></li>
     </ul>
 </div>
+<button id="normalViewBtn">Normal View</button>
+<button id="satelliteViewBtn">Satellite View</button>
 
 <script>
     // Get user's initial location from the backend if available
     var userLat = /*[[${userLocation != null ? userLocation.latitude : 59.3293}]]*/ 59.3293;
     var userLon = /*[[${userLocation != null ? userLocation.longitude : 18.0686}]]*/ 18.0686;
 
-    // Create the map
-    var map = new ol.Map({
-        target: 'map',
-        layers: [new ol.layer.Tile({source: new ol.source.OSM()})],
-        view: new ol.View({center: ol.proj.fromLonLat([userLon, userLat]), zoom: 12})
+    // Create the tile layers for both normal and satellite views
+    var osmLayer = new ol.layer.Tile({
+        source: new ol.source.OSM()  // OpenStreetMap tiles (normal view)
     });
 
-    // Create a single source for markers
+    var satelliteLayer = new ol.layer.Tile({
+        source: new ol.source.XYZ({
+            url: 'https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/256/{z}/{x}/{y}?access_token=sk.eyJ1IjoiZGVlbm9kZXYwMCIsImEiOiJjbTkxYzE4Zm8wdTB0MmtyMHhhMThiNnF3In0.8RarD0MKfR9iwjP773OOxQ'  // Satellite view using Mapbox
+        })
+    });
+
+    // Create a map and add the default OpenStreetMap layer
+    var map = new ol.Map({
+        target: 'map',
+        layers: [osmLayer, satelliteLayer],  // Start with OpenStreetMap layer
+        view: new ol.View({
+            center: ol.proj.fromLonLat([userLon, userLat]),
+            zoom: 12
+        })
+    });
+
+    // Create the marker vector layer (this layer will be kept independent of tile layers)
     const markerSource = new ol.source.Vector();
-    const markerLayer = new ol.layer.Vector({ source: markerSource });
-    map.addLayer(markerLayer);
+    const markerLayer = new ol.layer.Vector({
+        source: markerSource,
+        zIndex:99 //ensure markers appear above map
+    });
+    map.addLayer(markerLayer);  // Add the marker layer to the map
 
     // Function to add a marker
     function addMarker(lon, lat, name) {
@@ -59,10 +78,28 @@
         markerSource.addFeature(marker);
     }
 
+
+
     // Add pre-loaded markers from Thymeleaf
     var locations = /*[[${recommendations}]]*/ [];
     locations.forEach(location => {
         addMarker(location.longitude, location.latitude, location.activityName);
+    });
+
+    // Get buttons by their IDs for tile layer switching
+    var normalViewBtn = document.getElementById('normalViewBtn');
+    var satelliteViewBtn = document.getElementById('satelliteViewBtn');
+
+    // Event listener for Normal View button
+    normalViewBtn.addEventListener('click', function () {
+        map.removeLayer(satelliteLayer);  // Remove satellite layer if added
+        map.addLayer(osmLayer);  // Add the normal OpenStreetMap layer
+    });
+
+    // Event listener for Satellite View button
+    satelliteViewBtn.addEventListener('click', function () {
+        map.removeLayer(osmLayer);  // Remove OpenStreetMap layer
+        map.addLayer(satelliteLayer);// Add the satellite layer
     });
 
     // Geolocation: Center the map on user's actual location if allowed
