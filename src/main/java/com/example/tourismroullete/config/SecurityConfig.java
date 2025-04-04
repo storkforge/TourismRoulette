@@ -27,7 +27,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/locations/**").permitAll()
                         // Explicitly permit access to login page, registration page, and static resources
-                        .requestMatchers("/login", "/login?error", "/login?logout", "/register", "/api/register").permitAll()
+                        .requestMatchers("/login", "/login?error", "/login?logout", "/register", "/api/register", "/oauth2/**").permitAll()
                         .requestMatchers("/", "/events/**", "/home", "/css/**", "/js/**", "/perform_login", "/images/**", "/webjars/**").permitAll()
                         .requestMatchers("/", "/home", "/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
                         // Allow public access to categories and activities browsing
@@ -49,14 +49,18 @@ public class SecurityConfig {
                         .defaultSuccessUrl("/dashboard", true)
                         .failureUrl("/login?error=true")
                         .permitAll()
+                )
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/dashboard")
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/perform_logout")
+                        .logoutSuccessUrl("/login?logout=true")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                        .permitAll()
                 );
-//                .logout(logout -> logout
-//                        .logoutUrl("/perform_logout")
-//                        .logoutSuccessUrl("/login?logout=true")
-//                        .invalidateHttpSession(true)
-//                        .deleteCookies("JSESSIONID")
-//                        .permitAll()
-//                );
 
         return http.build();
     }
