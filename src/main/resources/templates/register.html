@@ -121,12 +121,4 @@
   </div>
 </div>
 </body>
-</html></qodoArtifact>
-
-The key change I made was to ensure the form is using `th:object="${registrationDto}"` to match exactly what your controller is adding to the model:
-
-```java
-model.addAttribute("registrationDto", new RegDTO());
-```
-
-This should resolve the issue with the fields not resolving. The template now correctly references the model attribute name that your controller is using.
+</html>
