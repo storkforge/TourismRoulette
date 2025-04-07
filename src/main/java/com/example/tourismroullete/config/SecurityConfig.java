@@ -1,5 +1,6 @@
 package com.example.tourismroullete.config;
 
+import com.example.tourismroullete.service.CustomOAuth2UserService;
 import com.example.tourismroullete.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,20 +9,22 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
 @Configuration
 public class SecurityConfig {
 
+    private final CustomAuthenticationSuccessHandler successHandler;
+    private final CustomOAuth2UserService oAuth2UserService;
     private final CustomUserDetailsService customUserDetailsService;
-    private final AuthenticationSuccessHandler successHandler;
 
     public SecurityConfig(
             @Lazy CustomUserDetailsService customUserDetailsService,
-            CustomAuthenticationSuccessHandler successHandler
+            CustomAuthenticationSuccessHandler successHandler,
+            CustomOAuth2UserService oAuth2UserService
     ) {
         this.customUserDetailsService = customUserDetailsService;
         this.successHandler = successHandler;
+        this.oAuth2UserService = oAuth2UserService;
     }
 
     @Bean
@@ -38,7 +41,9 @@ public class SecurityConfig {
                         .requestMatchers("/categories", "/categories/view/**").permitAll()
                         .requestMatchers("/activities", "/activities/category/**", "/activities/view/**").permitAll()
                         .requestMatchers("/api/categories/**", "/api/activities/**").permitAll()
+                        .requestMatchers("/access-denied").permitAll()
                         // Admin-only access to category and activity management
+                        .requestMatchers("/dashboard").hasRole("ADMIN")
                         .requestMatchers("/categories/new", "/categories/edit/**", "/categories/delete/**").hasRole("ADMIN")
                         .requestMatchers("/categories/manage").hasRole("ADMIN")
                         .requestMatchers("/activities/new", "/activities/edit/**", "/activities/delete/**").hasRole("ADMIN")
@@ -56,6 +61,9 @@ public class SecurityConfig {
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/login")
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(oAuth2UserService)
+                        )
                         .successHandler(successHandler)
                 )
                 .logout(logout -> logout

@@ -18,6 +18,11 @@ public class AuthController {
         return "dashboard";
     }
 
+    @GetMapping("/access-denied")
+    public String accessDenied() {
+        return "access-denied";
+    }
+
     @GetMapping("/")
     public String home() {
         return "home";
