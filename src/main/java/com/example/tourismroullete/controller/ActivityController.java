@@ -2,21 +2,33 @@ package com.example.tourismroullete.controller;
 
 import com.example.tourismroullete.entities.Activity;
 import com.example.tourismroullete.entities.Category;
+import com.example.tourismroullete.entities.User;
+import com.example.tourismroullete.entities.UserCategory;
+import com.example.tourismroullete.repositories.UserCategoryRepository;
+import com.example.tourismroullete.repositories.UserRepository;
 import com.example.tourismroullete.service.ActivityService;
 import com.example.tourismroullete.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
+
 
 @Controller
 public class ActivityController {
 
     private final ActivityService activityService;
     private final CategoryService categoryService;
+    private UserRepository userRepository;
+    private UserCategoryRepository userCategoryRepository;
+    private UserCategory userCategory;
+
 
     @Autowired
     public ActivityController(ActivityService activityService, CategoryService categoryService) {
@@ -34,6 +46,8 @@ public class ActivityController {
         model.addAttribute("activities", activities);
         model.addAttribute("categories", categories);
         model.addAttribute("selectedCategories", Collections.emptyList());
+
+
 
         return "activities";
     }
@@ -177,4 +191,5 @@ public class ActivityController {
             @RequestParam(required = false) Set<Long> categoryIds) {
         return activityService.searchActivities(term, categoryIds);
     }
+
 }

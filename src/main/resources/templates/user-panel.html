@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<html lang="sv" xmlns:th="http://www.thymeleaf.org">
+<html lang="sv" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -151,7 +151,7 @@
 
 <!-- User dropdown -->
 <div class="user-dropdown" onclick="toggleDropdown()">
-    <span>Mitt Konto</span> <i class="fas fa-user"></i>
+    <span sec:authentication="name">Mitt Konto</span> <i class="fas fa-user"></i>
     <div class="dropdown-menu" id="dropdownMenu">
         <a th:href="@{/account/settings}">Konto-inställningar</a>
         <form th:action="@{/perform_logout}" method="post" style="margin: 0;">
@@ -166,8 +166,8 @@
         <a th:href="@{/map}" class="option map">
             <i class="fas fa-map-marked-alt"></i> Karta
         </a>
-        <a th:href="@{/categories}" class="option categories">
-            <i class="fas fa-th-large"></i> Kategorier
+        <a th:href="@{/preferences}" class="option categories">
+            <i class="fas fa-th-large"></i> Preferenser
         </a>
         <a th:href="@{/activities}" class="option activities">
             <i class="fas fa-running"></i> Aktiviteter
