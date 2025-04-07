@@ -257,6 +257,22 @@
         </div>
       </div>
 
+      <div class="category-filters">
+        <div th:each="cat : ${categories}">
+          <input type="checkbox"
+                 name="categoryIds"
+                 th:id="'cat-' + ${cat.id}"
+                 th:value="${cat.id}"
+                 class="category-checkbox"
+                 th:checked="${selectedCategories != null && selectedCategories.contains(cat.id)}" />
+          <label th:for="'cat-' + ${cat.id}" class="category-label">
+            <span th:text="${cat.name}"></span>
+            <span th:if="${preferredCategoryIds != null and preferredCategoryIds.contains(cat.id)}"
+                  style="margin-left: 5px; font-size: 12px; color: #4a90e2;">★</span>
+          </label>
+        </div>
+      </div>
+
       <!-- Filter Actions -->
       <div class="filter-actions">
         <button type="submit" class="filter-button">Apply Filters</button>

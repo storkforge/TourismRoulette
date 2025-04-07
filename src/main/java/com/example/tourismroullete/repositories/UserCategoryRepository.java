@@ -16,5 +16,5 @@ public interface UserCategoryRepository extends JpaRepository<UserCategory, Long
     // Delete all preferences by user ID (for clearing previous preferences)
     void deleteByUserId(Long userId);
 
-    List<UserCategory> findByUser(User user);
+    List<UserCategory> findByUserId(Long userId);
 }

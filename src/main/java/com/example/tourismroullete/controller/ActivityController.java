@@ -16,6 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import com.example.tourismroullete.repositories.UserCategoryRepository;
+import com.example.tourismroullete.repositories.UserRepository;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,29 +28,44 @@ public class ActivityController {
 
     private final ActivityService activityService;
     private final CategoryService categoryService;
-    private UserRepository userRepository;
-    private UserCategoryRepository userCategoryRepository;
-    private UserCategory userCategory;
-
+    private final UserRepository userRepository;
+    private final UserCategoryRepository userCategoryRepository;
 
     @Autowired
-    public ActivityController(ActivityService activityService, CategoryService categoryService) {
+    public ActivityController(ActivityService activityService,
+                              CategoryService categoryService,
+                              UserRepository userRepository,
+                              UserCategoryRepository userCategoryRepository) {
         this.activityService = activityService;
         this.categoryService = categoryService;
+        this.userRepository = userRepository;
+        this.userCategoryRepository = userCategoryRepository;
     }
 
     // Web UI endpoints
 
     @GetMapping("/activities")
-    public String listActivities(Model model) {
+    public String listActivities(Model model, Authentication authentication) {
         List<Activity> activities = activityService.getAllActivities();
         List<Category> categories = categoryService.getAllCategories();
+
+        List<Long> preferredCategoryIds = new ArrayList<>();
+        if (authentication != null && authentication.isAuthenticated()) {
+            String username = authentication.getName();
+            Optional<User> userOpt = userRepository.findByUsername(username);
+            if (userOpt.isPresent()) {
+                Long userId = userOpt.get().getId();
+                List<UserCategory> userCategories = userCategoryRepository.findByUserId(userId);
+                preferredCategoryIds = userCategories.stream()
+                        .map(uc -> uc.getCategory().getId())
+                        .collect(Collectors.toList());
+            }
+        }
 
         model.addAttribute("activities", activities);
         model.addAttribute("categories", categories);
         model.addAttribute("selectedCategories", Collections.emptyList());
-
-
+        model.addAttribute("preferredCategoryIds", preferredCategoryIds); // 👈 add this
 
         return "activities";
     }
