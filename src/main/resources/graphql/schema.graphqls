@@ -6,9 +6,6 @@ type Category {
     nameKey: String
 }
 
-# apparently this code will make Double work but GraphQL treats it like a fucking float?!?!?
-scalar Double
-
 type Activity {
     id: ID!
     description: String!
@@ -19,8 +16,8 @@ type Activity {
     price: Int
     activityDescription: String!
     activityName: String!
-    latitude: Double!
-    longitude: Double!
+    latitude: Float!
+    longitude: Float!
 }
 
 type User {
@@ -32,4 +29,10 @@ type User {
     lastName: String!
     password: String
     roles: String!
+}
+
+type Query {
+    categories: [Category]
+    activities: [Activity]
+    users: [User]
 }
