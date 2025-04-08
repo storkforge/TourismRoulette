@@ -1,69 +1,109 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
 <head>
-    <title>Create Event</title>
+    <title>Activity Details</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            background-color: #f5f5f5;
             margin: 0;
             padding: 20px;
+            background-color: #f5f5f5;
         }
-        .event-container {
-            width: 100%;
-            max-width: 800px;
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
         }
-        .form-group {
-            margin-bottom: 1rem;
+        .page-title {
+            font-size: 24px;
+            color: #333;
         }
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
+        .nav-links {
+            display: flex;
+            gap: 10px;
         }
-        input[type="text"], input[type="datetime-local"], textarea {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        button {
-            padding: 0.5rem 1rem;
-            background-color: #4CAF50;
+        .nav-link {
+            padding: 8px 16px;
+            background-color: #4a90e2;
             color: white;
-            border: none;
+            text-decoration: none;
             border-radius: 4px;
-            cursor: pointer;
-            font-size: 1rem;
+            font-size: 14px;
         }
-        button:hover {
-            background-color: #45a049;
+        .nav-link:hover {
+            background-color: #3a7bc8;
+        }
+        .activity-details {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .activity-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #e9ecef;
+        }
+        .activity-info h2 {
+            margin-top: 0;
+            color: #4a90e2;
+        }
+        .activity-info p {
+            margin: 5px 0;
+            color: #333;
+        }
+        .activity-categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .activity-category {
+            padding: 6px 12px;
+            background-color: #e9ecef;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #495057;
         }
     </style>
 </head>
 <body>
-<h1>Create a New Event</h1>
-<form th:action="@{/events}" method="post" th:object="${event}">
-    <div class="form-group">
-        <label for="title">Event Title:</label>
-        <input type="text" id="title" name="title" th:field="*{title}" required />
+<div class="container">
+    <header>
+        <h1 class="page-title">Activity Details</h1>
+        <div class="nav-links">
+            <a href="/dashboard" class="nav-link">Back to Dashboard</a>
+        </div>
+    </header>
+
+    <div class="activity-details">
+        <div class="activity-info">
+            <h2 th:text="${activity.name}">Activity Name</h2>
+            <p><strong>Description:</strong></p>
+            <p th:text="${activity.description}">This is the activity description.</p>
+        </div>
+
+        <div class="activity-info">
+            <p><strong>Categories:</strong></p>
+            <div class="activity-categories">
+                <span class="activity-category" th:each="cat : ${activity.categories}" th:text="${cat.name}">Category</span>
+            </div>
+        </div>
     </div>
-    <div class="form-group">
-        <label for="description">Event Description:</label>
-        <textarea id="description" name="description" th:field="*{description}" required></textarea>
-    </div>
-    <div class="form-group">
-        <label for="eventDate">Event Date:</label>
-        <input type="datetime-local" id="eventDate" name="eventDate" th:field="*{eventDate}" required />
-    </div>
-    <button type="submit">Create Event</button>
-</form>
+</div>
 </body>
 </html>

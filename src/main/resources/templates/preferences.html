@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -71,7 +72,10 @@
     <input type="hidden" name="username" th:value="${username}" />
     <div class="checkbox-group">
       <label th:each="category : ${categories}">
-        <input type="checkbox" th:value="${category.id}" th:name="preferences" />
+        <input type="checkbox"
+               th:value="${category.id}"
+               th:name="preferences"
+               th:checked="${userPreferences != null && userPreferences.contains(category.id)}" />
         <span th:text="${category.name}">Category Name</span>
       </label>
     </div>
@@ -81,3 +85,4 @@
 </div>
 </body>
 </html>
+</qodoArtifact>
