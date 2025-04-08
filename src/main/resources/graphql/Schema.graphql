@@ -1,0 +1,35 @@
+type Category {
+    id: ID!
+    name: String!
+    description: String!
+    activity: [Activity]!
+    nameKey: String
+}
+
+# apparently this code will make Double work but GraphQL treats it like a fucking float?!?!?
+scalar Double
+
+type Activity {
+    id: ID!
+    description: String!
+    durationMinutes: Int!
+    imageURL: String
+    location: String!
+    name: String!
+    price: Int
+    activityDescription: String!
+    activityName: String!
+    latitude: Double!
+    longitude: Double!
+}
+
+type User {
+    id: ID!
+    createdAt: String
+    email: String!
+    enabled: Boolean!
+    firstName: String!
+    lastName: String!
+    password: String
+    roles: String!
+}
