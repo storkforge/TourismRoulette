@@ -30,7 +30,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // Disable CSRF for simplicity during development
+//                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**", "/graphql")) // Disable CSRF for simplicity during development
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/locations/**").permitAll()
                         // Explicitly permit access to login page, registration page, and static resources
@@ -42,8 +42,6 @@ public class SecurityConfig {
                         .requestMatchers("/activities", "/activities/category/**", "/activities/view/**").permitAll()
                         .requestMatchers("/api/categories/**", "/api/activities/**").permitAll()
                         .requestMatchers("/access-denied").permitAll()
-                        .requestMatchers("/graphql", "/graphiql").permitAll() // Allow access to GraphQL and GraphiQL
-
                         // Admin-only access to category and activity management
                         .requestMatchers("/dashboard").hasRole("ADMIN")
                         .requestMatchers("/categories/new", "/categories/edit/**", "/categories/delete/**").hasRole("ADMIN")
@@ -52,12 +50,12 @@ public class SecurityConfig {
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         // All other requests need authentication
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 .formLogin(form -> form
-                        .loginPage("/login")
+                        .loginPage("/login").permitAll()
                         .loginProcessingUrl("/login")
-                        .successHandler(successHandler)
+                        .defaultSuccessUrl("/dashboard")
                         .failureUrl("/login?error=true")
                         .permitAll()
                 )
@@ -68,6 +66,13 @@ public class SecurityConfig {
                         )
                         .successHandler(successHandler)
                 )
+
+                .webAuthn((webAuthn) -> webAuthn
+                        .rpName("Spring Security Relying Party")
+                        .rpId("localhost")
+                        .allowedOrigins("http://localhost:8080")
+                )
+
                 .logout(logout -> logout
                         .logoutUrl("/perform_logout")
                         .logoutSuccessUrl("/login?logout=true")
@@ -75,6 +80,7 @@ public class SecurityConfig {
                         .deleteCookies("JSESSIONID")
                         .permitAll()
                 );
+
 
         return http.build();
     }
