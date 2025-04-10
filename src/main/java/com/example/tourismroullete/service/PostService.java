@@ -1,6 +1,8 @@
 package com.example.tourismroullete.service;
 
+import com.example.tourismroullete.model.Like;
 import com.example.tourismroullete.model.Post;
+import com.example.tourismroullete.repository.LikeRepository;
 import com.example.tourismroullete.repository.PostRepository;
 import com.example.tourismroullete.repository.CommentRepository;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ import java.util.Optional;
 public class PostService {
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
+    private final LikeRepository likeRepository; // 🆕
 
     public List<Post> getAllPosts() {
         return postRepository.findAll();
@@ -34,14 +37,30 @@ public class PostService {
         return postRepository.save(post);
     }
 
+    public Post updatePost(Long id, Post updatedPost, User user) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
+
+        if (!post.getAuthor().equals(user)) {
+            throw new UnauthorizedException("Not authorized to edit this post");
+        }
+
+        post.setTitle(updatedPost.getTitle());
+        post.setContent(updatedPost.getContent());
+        post.setLocation(updatedPost.getLocation());
+        post.setPublic(updatedPost.isPublic());
+
+        return postRepository.save(post);
+    }
+
     public void deletePost(Long id, User user) {
         Post post = postRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
-            
+                .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
+
         if (!post.getAuthor().equals(user)) {
             throw new UnauthorizedException("Not authorized to delete this post");
         }
-        
+
         postRepository.delete(post);
     }
 
@@ -58,6 +77,21 @@ public class PostService {
     }
 
     public void toggleLike(Post post, User user) {
-        // Implementera like/unlike logik här
+        Optional<Like> existingLike = post.getLikes().stream()
+                .filter(like -> like.getUser().equals(user))
+                .findFirst();
+
+        if (existingLike.isPresent()) {
+            post.getLikes().remove(existingLike.get());
+            likeRepository.delete(existingLike.get());
+        } else {
+            Like newLike = new Like();
+            newLike.setUser(user);
+            newLike.setPost(post);
+            post.getLikes().add(newLike);
+            likeRepository.save(newLike);
+        }
+
+        postRepository.save(post);
     }
 }
