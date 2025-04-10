@@ -1,0 +1,38 @@
+type Category {
+    id: ID!
+    name: String!
+    description: String!
+    activity: [Activity]!
+    nameKey: String
+}
+
+type Activity {
+    id: ID!
+    description: String!
+    durationMinutes: Int!
+    imageURL: String
+    location: String!
+    name: String!
+    price: Int
+    activityDescription: String!
+    activityName: String!
+    latitude: Float!
+    longitude: Float!
+}
+
+type User {
+    id: ID!
+    createdAt: String
+    email: String!
+    enabled: Boolean!
+    firstName: String!
+    lastName: String!
+    password: String
+    roles: String!
+}
+
+type Query {
+    categories: [Category]
+    activities: [Activity]
+    users: [User]
+}

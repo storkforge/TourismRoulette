@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
-<head>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="http://www.w3.org/1999/xhtml">
     <title>Dashboard</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -46,23 +47,102 @@
         .content {
             padding: 20px 0;
         }
+        .nav-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .nav-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-decoration: none;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 180px;
+        }
+        .nav-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+        .nav-card i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #4a90e2;
+        }
+        .nav-card h3 {
+            margin: 0;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .nav-card p {
+            margin: 0;
+            font-size: 14px;
+            color: #666;
+        }
+        .user-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .user-info p {
+            margin: 5px 0;
+        }
     </style>
 </head>
 <body>
-    <div class="dashboard-container">
-        <header>
-            <div class="welcome-message" th:text="${message}">Welcome to the Dashboard!</div>
-            <form th:action="@{/perform_logout}" method="post">
-                <button type="submit" class="logout-btn">Logout</button>
-            </form>
-        </header>
-        
-        <div class="content">
-            <h2>Dashboard Content</h2>
-            <p>You are now logged in. This is your secure dashboard area.</p>
-            <p>User: <span sec:authentication="name">Username</span></p>
+<div class="dashboard-container">
+    <header>
+        <div class="welcome-message" th:text="${message}">Welcome to the Dashboard!</div>
+        <form th:action="@{/perform_logout}" method="post">
+            <button type="submit" class="logout-btn">Logout</button>
+        </form>
+    </header>
+
+    <div class="content">
+        <div class="user-info">
+            <h2>User Information</h2>
+            <p>Username: <span sec:authentication="name">Username</span></p>
             <p>Roles: <span sec:authentication="principal.authorities">Roles</span></p>
         </div>
+
+        <h2>Tourism Roulette Navigation</h2>
+        <p>Select a destination to manage your tourism activities and categories.</p>
+
+        <div class="nav-cards">
+            <a href="/activities" class="nav-card">
+                <i class="fas fa-map-marker-alt"></i>
+                <h3>Activities</h3>
+                <p>Browse and manage tourism activities</p>
+            </a>
+
+            <a href="/categories" class="nav-card">
+                <i class="fas fa-tags"></i>
+                <h3>Categories</h3>
+                <p>Manage activity categories</p>
+            </a>
+
+            <a href="/activities/new" class="nav-card">
+                <i class="fas fa-plus-circle"></i>
+                <h3>Add Activity</h3>
+                <p>Create a new tourism activity</p>
+            </a>
+
+            <a href="/categories/new" class="nav-card">
+                <i class="fas fa-folder-plus"></i>
+                <h3>Add Category</h3>
+                <p>Create a new activity category</p>
+            </a>
+        </div>
     </div>
+</div>
 </body>
-</html></qodoArtifact>
+</html>
