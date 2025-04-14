@@ -1,0 +1,88 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Select Your Preferences</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .preferences-container {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      width: 90%;
+      max-width: 500px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+
+    label {
+      margin-bottom: 10px;
+      font-size: 16px;
+      color: #555;
+    }
+
+    input[type="checkbox"] {
+      margin-right: 10px;
+    }
+
+    button {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+<div class="preferences-container">
+  <h1>What do you enjoy doing?</h1>
+
+  <form th:action="@{/preferences}" method="post">
+    <input type="hidden" name="username" th:value="${username}" />
+    <div class="checkbox-group">
+      <label th:each="category : ${categories}">
+        <input type="checkbox"
+               th:value="${category.id}"
+               th:name="preferences"
+               th:checked="${userPreferences != null && userPreferences.contains(category.id)}" />
+        <span th:text="${category.name}">Category Name</span>
+      </label>
+    </div>
+
+    <button type="submit">Save Preferences</button>
+  </form>
+</div>
+</body>
+</html>
+</qodoArtifact>
