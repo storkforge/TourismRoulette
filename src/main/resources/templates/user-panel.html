@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<html lang="sv" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<html lang="sv" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +8,31 @@
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+
+        .language-switcher {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .lang-btn {
+            background: white;
+            border: 2px solid #333;
+            border-radius: 6px;
+            padding: 6px 12px;
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .lang-btn:hover {
+            background: #333;
+            color: white;
+        }
 
         * {
             margin: 0;
@@ -143,19 +168,20 @@
 
 <!-- Logout form -->
 <form th:action="@{/perform_logout}" method="post" style="position: absolute; top: 20px; left: 20px; margin:0;">
-    <button type="submit" class="logout-btn">Logga ut</button>
+    <button type="submit" class="logout-btn" th:text="#{logout.button}">Logga ut</button>
 </form>
 
 <!-- Header -->
-<div class="header">Välkommen till Tourist Roulette</div>
+<div class="header" th:text="#{header.title}">Välkommen till Tourist Roulette</div>
 
 <!-- User dropdown -->
 <div class="user-dropdown" onclick="toggleDropdown()">
-    <span sec:authentication="name">Mitt Konto</span> <i class="fas fa-user"></i>
+    <span th:text="#{account.label}">Mitt Konto</span> <i class="fas fa-user"></i>
     <div class="dropdown-menu" id="dropdownMenu">
-        <a th:href="@{/account/settings}">Konto-inställningar</a>
+        <a th:href="@{/account/settings}" th:text="#{account.settings}">Konto-inställningar</a>
         <form th:action="@{/perform_logout}" method="post" style="margin: 0;">
-            <button type="submit" style="background: none; border: none; padding: 0; font-size: 14px; color: black; cursor: pointer;">Logga ut</button>
+            <button type="submit" style="background: none; border: none; padding: 0; font-size: 14px; color: black; cursor: pointer;"
+                    th:text="#{logout.button}">Logga ut</button>
         </form>
     </div>
 </div>
@@ -164,15 +190,20 @@
 <div class="panel">
     <div class="button-container">
         <a th:href="@{/map}" class="option map">
-            <i class="fas fa-map-marked-alt"></i> Karta
+            <i class="fas fa-map-marked-alt"></i> <span th:text="#{button.map}">Karta</span>
         </a>
-        <a th:href="@{/preferences}" class="option categories">
-            <i class="fas fa-th-large"></i> Preferenser
+        <a th:href="@{/categories}" class="option categories">
+            <i class="fas fa-th-large"></i> <span th:text="#{button.categories}">Kategorier</span>
         </a>
         <a th:href="@{/activities}" class="option activities">
-            <i class="fas fa-running"></i> Aktiviteter
+            <i class="fas fa-running"></i> <span th:text="#{button.activities}">Aktiviteter</span>
         </a>
     </div>
+</div>
+
+<div class="language-switcher">
+    <a href="?lang=en">English</a>
+    <a href="?lang=sv">Svenska</a>
 </div>
 
 <script>
