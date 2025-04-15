@@ -1,5 +1,7 @@
 package com.example.tourismroullete.model;
 
+import com.example.tourismroullete.entities.User;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,12 +22,12 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String title;
+    //private String title;
 
-    @Column(length = 2000)
-    private String content;
+    //@Column(length = 2000)
+   // private String content;
 
-    private String location;
+   // private String location;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -46,4 +48,17 @@ public class Post {
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
+
+    @NotBlank(message = "Title is required")
+    private String title;
+
+    @NotBlank(message = "Content is required")
+    private String content;
+
+    @NotBlank(message = "Location is required")
+    private String location;
+
+    private String imagePath;  //  lagra bildens sökväg
+
+
 }

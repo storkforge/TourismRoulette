@@ -10,7 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import lombok.RequiredArgsConstructor;
 import com.example.tourismroullete.model.Comment;
-import com.example.tourismroullete.model.User;
+import com.example.tourismroullete.entities.User;
 import com.example.tourismroullete.exception.ResourceNotFoundException;
 import com.example.tourismroullete.exception.UnauthorizedException;
 
@@ -34,6 +34,10 @@ public class PostService {
 
     public Post createPost(Post post, User author) {
         post.setAuthor(author);
+        // Ytterligare validering kan läggas till här
+        if (post.getTitle() == null || post.getTitle().trim().isEmpty()) {
+            throw new IllegalArgumentException("Title cannot be empty");
+        }
         return postRepository.save(post);
     }
 
@@ -94,4 +98,12 @@ public class PostService {
 
         postRepository.save(post);
     }
+
+
+
+
+
+
+
+
 }

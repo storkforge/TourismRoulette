@@ -2,7 +2,7 @@ package com.example.tourismroullete.repository;
 
 import com.example.tourismroullete.model.Like;
 import com.example.tourismroullete.model.Post;
-import com.example.tourismroullete.model.User;
+import com.example.tourismroullete.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 // LikeRepository.java - Fixa detta!

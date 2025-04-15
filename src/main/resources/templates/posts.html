@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tourism Posts</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .post-card {
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .post-card:hover {
+            transform: translateY(-5px);
+        }
+        .like-btn {
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .like-btn.liked {
+            color: #dc3545;
+        }
+        .location-icon {
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Travel Experiences</h1>
+        <a href="/create-post" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>New Post
+        </a>
+    </div>
+
+    <div id="posts-container" class="row">
+        <!-- Posts will be loaded here via JavaScript -->
+    </div>
+
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center" id="pagination">
+            <!-- Pagination will be added here -->
+        </ul>
+    </nav>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let currentPage = 0;
+    const pageSize = 5;
+
+    // Load posts when page loads
+    document.addEventListener('DOMContentLoaded', loadPosts);
+
+    async function loadPosts(page = 0) {
+        currentPage = page;
+        try {
+            const response = await fetch(`/api/posts?page=${page}&size=${pageSize}`);
+            const data = await response.json();
+            renderPosts(data.content);
+            renderPagination(data.totalPages, page);
+        } catch (error) {
+            console.error('Error loading posts:', error);
+        }
+    }
+
+    function renderPosts(posts) {
+        const container = document.getElementById('posts-container');
+        container.innerHTML = '';
+
+        posts.forEach(post => {
+            const postElement = document.createElement('div');
+            postElement.className = 'col-md-6 col-lg-4';
+            postElement.innerHTML = `
+                    <div class="card post-card">
+                        <img src="${post.imageUrl || 'https://via.placeholder.com/300x200?text=Travel+Photo'}"
+                             class="card-img-top" alt="${post.title}">
+                        <div class="card-body">
+                            <h5 class="card-title">${post.title}</h5>
+                            <p class="card-text">${post.content}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-map-marker-alt location-icon me-1"></i>
+                                    ${post.location}
+                                </small>
+                                <div>
+                                    <span class="me-3">${post.commentsCount || 0} <i class="fas fa-comment"></i></span>
+                                    <span class="like-btn ${post.likedByCurrentUser ? 'liked' : ''}"
+                                          onclick="toggleLike(${post.id})">
+                                        ${post.likesCount || 0} <i class="fas fa-heart"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <small class="text-muted">Posted by ${post.author.username}</small>
+                        </div>
+                    </div>
+                `;
+            container.appendChild(postElement);
+        });
+    }
+
+    function renderPagination(totalPages, currentPage) {
+        const pagination = document.getElementById('pagination');
+        pagination.innerHTML = '';
+
+        for (let i = 0; i < totalPages; i++) {
+            const li = document.createElement('li');
+            li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+            li.innerHTML = `<a class="page-link" href="#" onclick="loadPosts(${i})">${i + 1}</a>`;
+            pagination.appendChild(li);
+        }
+    }
+
+    async function toggleLike(postId) {
+        try {
+            const response = await fetch(`/api/posts/${postId}/like`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                loadPosts(currentPage); // Refresh the current page
+            }
+        } catch (error) {
+            console.error('Error toggling like:', error);
+        }
+    }
+</script>
+</body>
+</html>

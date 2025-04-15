@@ -1,5 +1,6 @@
 package com.example.tourismroullete.model;
 
+import com.example.tourismroullete.entities.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
