@@ -23,11 +23,10 @@ public class PostController {
     private final PostService postService;
 
     // Hämta alla inlägg via REST API
-    @GetMapping("/posts")
-    public String getAllPosts(Model model) {
-        List<Post> posts = postService.getAllPosts(); // Detta anropar din service som pratar med databasen
-        model.addAttribute("posts", posts);
-        return "posts"; // Matchar filnamnet posts.html
+    @GetMapping
+    public ResponseEntity<List<Post>> getAllPosts() {
+        List<Post> posts = postService.getAllPosts();
+        return ResponseEntity.ok(posts);
     }
 
     // Hämta inlägg med id via REST API

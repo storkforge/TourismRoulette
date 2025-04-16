@@ -49,16 +49,24 @@
     document.addEventListener('DOMContentLoaded', loadPosts);
 
     async function loadPosts(page = 0) {
-        currentPage = page;
         try {
-            const response = await fetch(`/api/posts?page=${page}&size=${pageSize}`);
+            const response = await fetch('/api/posts');
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
             const data = await response.json();
-            renderPosts(data.content);
-            renderPagination(data.totalPages, page);
+            console.log('Fetched posts:', data);
+
+            // RENDER POSTS 🔽
+            renderPosts(data);
+
+            // If you implement pagination later, update this:
+            // renderPagination(totalPages, currentPage);
         } catch (error) {
             console.error('Error loading posts:', error);
         }
     }
+
 
     function renderPosts(posts) {
         const container = document.getElementById('posts-container');
@@ -69,8 +77,8 @@
             postElement.className = 'col-md-6 col-lg-4';
             postElement.innerHTML = `
                     <div class="card post-card">
-                        <img src="${post.imageUrl || 'https://via.placeholder.com/300x200?text=Travel+Photo'}"
-                             class="card-img-top" alt="${post.title}">
+                    <img src="${post.image ? `data:image/jpeg;base64,${post.image}` : 'https://via.placeholder.com/300x200?text=Travel+Photo'}"
+                        class="card-img-top" alt="${post.title}">
                         <div class="card-body">
                             <h5 class="card-title">${post.title}</h5>
                             <p class="card-text">${post.content}</p>
@@ -82,7 +90,8 @@
                             </div>
                         </div>
                         <div class="card-footer bg-transparent">
-                            <small class="text-muted">Posted by ${post.author.username}</small>
+                            <small class="text-muted">Posted by ${post.author ? post.author.username : 'Anonymous'}</small>
+
                         </div>
                     </div>
                 `;

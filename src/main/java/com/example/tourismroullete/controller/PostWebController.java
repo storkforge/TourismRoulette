@@ -25,6 +25,7 @@ public class PostWebController {
         return "posts"; // Thymeleaf kommer att leta efter posts.html
     }
 
+
     // Visa en form för att skapa nytt inlägg
     @GetMapping("/posts/new")
     public String createPostForm(Model model) {
@@ -34,8 +35,10 @@ public class PostWebController {
 
     // Hantera skapandet av ett nytt inlägg
     @PostMapping("/posts")
-    public String createPost(@ModelAttribute Post post, @RequestParam("author") User author) {
-        postService.createPost(post, author); // Du kan behöva anpassa användaren
-        return "redirect:/posts"; // Efter skapandet, omdirigera tillbaka till alla inlägg
+    public String createPost(@ModelAttribute Post post,
+                             @RequestParam("author") User author,
+                             @RequestParam(value = "image", required = false) MultipartFile image) {
+        postService.createPost(post, author, image);
+        return "redirect:/posts"; // Här ska det inte vara någon paginering som stör
     }
 }
