@@ -13,7 +13,12 @@ import com.example.tourismroullete.model.Comment;
 import com.example.tourismroullete.entities.User;
 import com.example.tourismroullete.exception.ResourceNotFoundException;
 import com.example.tourismroullete.exception.UnauthorizedException;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,14 +37,37 @@ public class PostService {
         return postRepository.findById(id);
     }
 
-    public Post createPost(Post post, User author) {
-        post.setAuthor(author);
-        // Ytterligare validering kan läggas till här
-        if (post.getTitle() == null || post.getTitle().trim().isEmpty()) {
-            throw new IllegalArgumentException("Title cannot be empty");
+    public Post createPost(Post post, User user, MultipartFile imageFile) {
+        post.setAuthor(user);
+
+        if (imageFile != null && !imageFile.isEmpty()) {
+            try (InputStream inputStream = imageFile.getInputStream();
+                 ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
+
+                byte[] temp = new byte[1024];
+                int bytesRead;
+                while ((bytesRead = inputStream.read(temp)) != -1) {
+                    buffer.write(temp, 0, bytesRead);
+                }
+
+                post.setImage(buffer.toByteArray()); // ← tydligare och ibland stabilare
+            } catch (IOException e) {
+                throw new RuntimeException("Kunde inte läsa bildfilen", e);
+            }
         }
+
         return postRepository.save(post);
     }
+
+
+
+        //post.setAuthor(user);
+       // post.setCreatedAt(LocalDateTime.now());
+
+        // Spara via repository
+        //return postRepository.save(post);
+
+
 
     public Post updatePost(Long id, Post updatedPost, User user) {
         Post post = postRepository.findById(id)

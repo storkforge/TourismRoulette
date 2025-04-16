@@ -2,10 +2,7 @@ package com.example.tourismroullete.model;
 
 import com.example.tourismroullete.entities.User;
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -16,6 +13,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+
 public class Post {
 
     @Id
@@ -61,4 +59,15 @@ public class Post {
     private String imagePath;  //  lagra bildens sökväg
 
 
+    @Column(name = "image", columnDefinition = "BYTEA")
+    private byte[] image;
+
+
+
+
+
+
+
 }
+
+

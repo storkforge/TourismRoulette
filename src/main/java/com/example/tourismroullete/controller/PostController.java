@@ -11,6 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -22,9 +23,11 @@ public class PostController {
     private final PostService postService;
 
     // Hämta alla inlägg via REST API
-    @GetMapping
-    public List<Post> getAllPosts() {
-        return postService.getAllPosts();
+    @GetMapping("/posts")
+    public String getAllPosts(Model model) {
+        List<Post> posts = postService.getAllPosts(); // Detta anropar din service som pratar med databasen
+        model.addAttribute("posts", posts);
+        return "posts"; // Matchar filnamnet posts.html
     }
 
     // Hämta inlägg med id via REST API
@@ -45,9 +48,22 @@ public class PostController {
     }
 
     // Skapa ett nytt inlägg via REST API
-    @PostMapping
-    public ResponseEntity<Post> createPost(@RequestBody Post post, @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(postService.createPost(post, user));
+    @PostMapping(consumes = "multipart/form-data")
+    public ResponseEntity<Post> createPost(
+            @RequestParam("title") String title,
+            @RequestParam("location") String location,
+            @RequestParam("content") String content,
+            @RequestParam(value = "isPublic", defaultValue = "true") boolean isPublic,
+            @RequestParam(value = "image", required = false) MultipartFile imageFile,
+            @AuthenticationPrincipal User user
+    ) {
+        Post post = new Post();
+        post.setTitle(title);
+        post.setLocation(location);
+        post.setContent(content);
+        post.setPublic(isPublic);
+
+        return ResponseEntity.ok(postService.createPost(post, user, imageFile));
     }
 
     // Uppdatera ett inlägg via REST API

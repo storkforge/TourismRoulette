@@ -15,13 +15,6 @@
         .post-card:hover {
             transform: translateY(-5px);
         }
-        .like-btn {
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-        .like-btn.liked {
-            color: #dc3545;
-        }
         .location-icon {
             color: #6c757d;
         }
@@ -86,13 +79,6 @@
                                     <i class="fas fa-map-marker-alt location-icon me-1"></i>
                                     ${post.location}
                                 </small>
-                                <div>
-                                    <span class="me-3">${post.commentsCount || 0} <i class="fas fa-comment"></i></span>
-                                    <span class="like-btn ${post.likedByCurrentUser ? 'liked' : ''}"
-                                          onclick="toggleLike(${post.id})">
-                                        ${post.likesCount || 0} <i class="fas fa-heart"></i>
-                                    </span>
-                                </div>
                             </div>
                         </div>
                         <div class="card-footer bg-transparent">
@@ -113,23 +99,6 @@
             li.className = `page-item ${i === currentPage ? 'active' : ''}`;
             li.innerHTML = `<a class="page-link" href="#" onclick="loadPosts(${i})">${i + 1}</a>`;
             pagination.appendChild(li);
-        }
-    }
-
-    async function toggleLike(postId) {
-        try {
-            const response = await fetch(`/api/posts/${postId}/like`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (response.ok) {
-                loadPosts(currentPage); // Refresh the current page
-            }
-        } catch (error) {
-            console.error('Error toggling like:', error);
         }
     }
 </script>
