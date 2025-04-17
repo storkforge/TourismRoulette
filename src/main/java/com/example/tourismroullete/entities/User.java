@@ -65,4 +65,5 @@ public class User {
     @Column(length = 100)
     private String name;  // Om du vill använda en kortare namn-version
 
+
 }

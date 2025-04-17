@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="sv" xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -9,39 +8,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 
-        .profile-avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            object-fit: cover;
-            cursor: pointer;
-        }
-
-
-        .language-switcher {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            display: flex;
-            gap: 10px;
-        }
-
-        .lang-btn {
-            background: white;
-            border: 2px solid #333;
-            border-radius: 6px;
-            padding: 6px 12px;
-            text-decoration: none;
-            color: #333;
-            font-weight: bold;
-            transition: 0.2s;
-        }
-
-        .lang-btn:hover {
-            background: #333;
-            color: white;
-        }
-
+        /* --- GLOBAL STYLES --- */
         * {
             margin: 0;
             padding: 0;
@@ -56,23 +23,6 @@
             height: 100vh;
             background: linear-gradient(135deg, #1e3c72, #2a5298);
             position: relative;
-        }
-
-        /* --- LOGOUT KNAPP --- */
-        .logout-btn {
-            background: red;
-            color: white;
-            padding: 12px 18px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .logout-btn:hover {
-            background: darkred;
         }
 
         /* --- HEADER --- */
@@ -106,6 +56,16 @@
             font-size: 18px;
         }
 
+        /* --- PROFILE AVATAR --- */
+        .profile-avatar {
+            width: 90px; /* Öka bredden */
+            height: 90px; /* Öka höjden */
+            border-radius: 90%;
+            object-fit: cover;
+            cursor: pointer;
+        }
+
+        /* --- DROPDOWN MENU --- */
         .dropdown-menu {
             display: none;
             position: absolute;
@@ -128,7 +88,26 @@
             background: #f1f1f1;
         }
 
-        /* --- PANEL MED KNAPPAR --- */
+
+
+        /* --- LOGOUT BUTTON --- */
+        .logout-btn {
+            background: red;
+            color: white;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: darkred;
+        }
+
+        /* --- PANEL WITH OPTIONS --- */
         .panel {
             text-align: center;
             margin-top: 50px;
@@ -170,6 +149,32 @@
         .map { background: #007bff; color: white; }
         .categories { background: #28a745; color: white; }
         .activities { background: #ffc107; color: black; }
+
+        /* --- LANGUAGE SWITCHER --- */
+        .language-switcher {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .lang-btn {
+            background: white;
+            border: 2px solid #333;
+            border-radius: 6px;
+            padding: 6px 12px;
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .lang-btn:hover {
+            background: #333;
+            color: white;
+        }
+
     </style>
 </head>
 <body>
@@ -184,12 +189,17 @@
 
 <!-- User dropdown -->
 <div class="user-dropdown" onclick="toggleDropdown()">
-    <img src="/images/default-avatar.png" alt="Profile" class="profile-avatar">
+    <!-- Kontrollera om användaren har en profilbild -->
+    <img th:if="${profilePictureBase64 != null}"
+         th:src="'data:image/jpeg;base64,' + ${profilePictureBase64}"
+         alt="Profile" class="profile-avatar">
+    <img th:if="${profilePictureBase64 == null}"
+         src="https://via.placeholder.com/48"
+         alt="Profile" class="profile-avatar">
     <div class="dropdown-menu" id="dropdownMenu">
-        <a th:href="@{/account/settings}" th:text="#{account.settings}">Konto-inställningar</a>
+        <a th:href="@{/profile}" th:text="#{account.settings}">Konto-inställningar</a>
         <form th:action="@{/perform_logout}" method="post" style="margin: 0;">
-            <button type="submit" style="background: none; border: none; padding: 0; font-size: 14px; color: black; cursor: pointer;"
-                    th:text="#{logout.button}">Logga ut</button>
+            <button type="submit" style="background: none; border: none; padding: 0; font-size: 14px; color: black; cursor: pointer;" th:text="#{logout.button}">Logga ut</button>
         </form>
     </div>
 </div>
@@ -210,8 +220,8 @@
 </div>
 
 <div class="language-switcher">
-    <a href="?lang=en">English</a>
-    <a href="?lang=sv">Svenska</a>
+    <a href="?lang=en" class="lang-btn">English</a>
+    <a href="?lang=sv" class="lang-btn">Svenska</a>
 </div>
 
 <script>
@@ -230,8 +240,6 @@
             menu.style.display = 'none';
         }
     });
-
-
 </script>
 
 </body>

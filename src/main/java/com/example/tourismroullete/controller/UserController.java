@@ -50,23 +50,39 @@ public class UserController {
     public String updateProfile(@RequestParam String username,
                                 @RequestParam String email,
                                 @RequestParam(value = "profilePicture", required = false) MultipartFile profilePicture,
-                                Principal principal) throws IOException {
+                                Principal principal,
+                                Model model) throws IOException {
 
+        // Hämta inloggad användare
         String loggedInUsername = principal.getName();
         User user = userRepository.findByUsername(loggedInUsername)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
+        // Uppdatera användardata
         user.setUsername(username);
         user.setEmail(email);
 
+        // Om ny profilbild finns, sätt den
         if (profilePicture != null && !profilePicture.isEmpty()) {
             user.setProfilePicture(profilePicture.getBytes());
         }
 
-        userRepository.save(user); // 🔥 Detta är det som faktiskt sparar till DB!
+        // Spara användaren i databasen
+        userRepository.save(user);
 
-        return "redirect:/profile";
+        // Uppdatera modellen med den uppdaterade användardatan
+        model.addAttribute("user", user);
+
+        // Om du har profilbild, kodar vi den till Base64 så att den kan visas på sidan
+        if (user.getProfilePicture() != null) {
+            String base64Image = Base64.getEncoder().encodeToString(user.getProfilePicture());
+            model.addAttribute("profilePictureBase64", base64Image);
+        }
+
+        // Återvänd till samma sida, utan redirect
+        return "profile";  // Här returneras samma vy med uppdaterad användardata
     }
+
 
 }
 
