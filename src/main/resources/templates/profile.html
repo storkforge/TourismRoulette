@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="sv" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{header.title1}">Profil</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            margin-top: 30px;
+            color: #333;
+        }
+
+        .profile-container {
+            background-color: #fff;
+            padding: 30px;
+            margin-top: 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .profile-picture {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .profile-picture img {
+            border-radius: 50%;
+            object-fit: cover;
+            width: 120px;
+            height: 120px;
+            border: 2px solid #ccc;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 6px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="file"] {
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .logout-link {
+            margin-top: 20px;
+            color: #007BFF;
+            text-decoration: none;
+        }
+
+        .logout-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Justera placeringen av "Till användarpanel" knappen */
+        .user-panel-button {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .user-panel-button button {
+            padding: 12px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .user-panel-button button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Styling för språkväxlare */
+        .language-switcher {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .lang-btn {
+            padding: 6px 12px;
+            background-color: #fff;
+            border: 2px solid #333;
+            border-radius: 6px;
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .lang-btn:hover {
+            background-color: #333;
+            color: white;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="profile-container">
+    <div class="profile-picture">
+        <h3 th:text="#{header.title1}">Profilbild</h3>
+        <img th:if="${profilePictureBase64 != null}"
+             th:src="'data:image/jpeg;base64,' + ${profilePictureBase64}"
+             alt="Profilbild" />
+        <img th:if="${profilePictureBase64 == null}"
+             src="https://via.placeholder.com/120?text=No+Image"
+             alt="Ingen profilbild" />
+    </div>
+
+    <form action="/profile/update" method="post" enctype="multipart/form-data">
+        <label for="username" th:text="#{username.label}">Username</label>
+        <input type="text" name="username" id="username" th:value="${user.username}" />
+
+        <label for="email" th:text="#{email.label}">Email</label>
+        <input type="email" name="email" id="email" th:value="${user.email}" />
+
+        <label for="profilePicture" th:text="#{profilePicture.label}">Ladda upp ny profilbild</label>
+        <input type="file" name="profilePicture" id="profilePicture" />
+
+        <button type="submit" th:text="#{saveChanges.button}">Spara ändringar</button>
+    </form>
+
+    <!-- Knapp för att gå tillbaka till användarpanelen -->
+    <div class="user-panel-button">
+        <a href="/user-panel">
+            <button type="button" th:text="#{userPanel.button}">Till användarpanel</button>
+        </a>
+    </div>
+
+</div>
+
+<!-- Språkväxlare -->
+<div class="language-switcher">
+    <a href="?lang=en" class="lang-btn" th:text="#{button.english}">English</a>
+    <a href="?lang=sv" class="lang-btn" th:text="#{button.swedish}">Svenska</a>
+</div>
+
+</body>
+</html>
