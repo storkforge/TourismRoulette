@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="sv" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            margin-top: 30px;
+            color: #333;
+        }
+
+        .profile-container {
+            background-color: #fff;
+            padding: 30px;
+            margin-top: 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .profile-picture {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .profile-picture img {
+            border-radius: 50%;
+            object-fit: cover;
+            width: 120px;
+            height: 120px;
+            border: 2px solid #ccc;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 6px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="file"] {
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .logout-link {
+            margin-top: 20px;
+            color: #007BFF;
+            text-decoration: none;
+        }
+
+        .logout-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<h1>Din Profil</h1>
+
+<div class="profile-container">
+    <div class="profile-picture">
+        <h3>Profilbild</h3>
+        <img th:if="${profilePictureBase64 != null}"
+             th:src="'data:image/jpeg;base64,' + ${profilePictureBase64}"
+             alt="Profilbild" />
+        <img th:if="${profilePictureBase64 == null}"
+             src="https://via.placeholder.com/120?text=No+Image"
+             alt="Ingen profilbild" />
+    </div>
+
+    <form action="/profile/update" method="post" enctype="multipart/form-data">
+        <label for="username">Username</label>
+        <input type="text" name="username" id="username" th:value="${user.username}" />
+
+        <label for="email">Email</label>
+        <input type="email" name="email" id="email" th:value="${user.email}" />
+
+        <label for="profilePicture">Upload new profile picture</label>
+        <input type="file" name="profilePicture" id="profilePicture" />
+
+        <button type="submit">Spara ändringar</button>
+    </form>
+
+    <a href="/user-panel">
+        <button type="button">Till användarpanel</button>
+    </a>
+
+</div>
+
+<a class="logout-link" href="/logout">Logga ut</a>
+</body>
+</html>

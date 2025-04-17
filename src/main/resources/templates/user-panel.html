@@ -9,6 +9,14 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 
+        .profile-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            cursor: pointer;
+        }
+
 
         .language-switcher {
             position: absolute;
@@ -176,7 +184,7 @@
 
 <!-- User dropdown -->
 <div class="user-dropdown" onclick="toggleDropdown()">
-    <span th:text="#{account.label}">Mitt Konto</span> <i class="fas fa-user"></i>
+    <img src="/images/default-avatar.png" alt="Profile" class="profile-avatar">
     <div class="dropdown-menu" id="dropdownMenu">
         <a th:href="@{/account/settings}" th:text="#{account.settings}">Konto-inställningar</a>
         <form th:action="@{/perform_logout}" method="post" style="margin: 0;">
@@ -222,6 +230,8 @@
             menu.style.display = 'none';
         }
     });
+
+
 </script>
 
 </body>
