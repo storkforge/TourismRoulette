@@ -6,6 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 
@@ -59,5 +62,8 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     private Set<UserCategory> userCategories;  // This relationship links the User to Categories
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<WebauthnCredentials> webAuthnCredentials = new ArrayList<>();
 
 }

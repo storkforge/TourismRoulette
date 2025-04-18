@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.example.tourismroullete.entities.User;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -34,10 +35,25 @@ public class UserService {
     public Optional<User> findByUsername(String username) {
         return userRepository.findByUsername(username);
     }
+
     public User registerNewUser(User user) {
         // Encode the password before saving it
         String encodedPassword = encodePassword(user.getPassword());
         user.setPassword(encodedPassword);
         return userRepository.save(user);  // Save the user to the DB and return it
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    @Transactional
+    public User saveUser(User user) {
+        // Only encode password if it's not already encoded
+        if (user.getPassword() != null && !user.getPassword().startsWith("{bcrypt}")) {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
+        return userRepository.save(user);
     }
 }
