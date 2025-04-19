@@ -78,6 +78,23 @@ public class Activity {
         this.longitude = lon;
     }
 
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+
     // Helper methods for managing the bidirectional relationship
     public void addCategory(Category category) {
         this.categories.add(category);

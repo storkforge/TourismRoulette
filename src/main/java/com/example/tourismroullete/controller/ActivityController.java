@@ -121,9 +121,29 @@ public class ActivityController {
     @GetMapping("/activities/{id}")
     public String viewActivity(@PathVariable Long id, Model model) {
         Activity activity = activityService.getActivityById(id);
+
+        String location = activity.getLocation();
+        if (location != null && !location.isEmpty()) {
+            String[] parts = location.split(", ");
+            String latString = parts[0].split(": ")[1];
+            String lonString = parts[1].split(": ")[1];
+
+            try {
+                double latitude = Double.parseDouble(latString);
+                double longitude = Double.parseDouble(lonString);
+                activity.setLatitude(latitude);
+                activity.setLongitude(longitude);
+                // Debugging: Print the latitude and longitude
+                System.out.println("Latitude: " + latitude + ", Longitude: " + longitude);
+            } catch (NumberFormatException e) {
+                System.out.println("Error parsing location: " + e.getMessage());
+            }
+        }
+
         model.addAttribute("activity", activity);
         return "activity-details";
     }
+
 
     @GetMapping("/activities/new")
     public String newActivityForm(Model model) {
