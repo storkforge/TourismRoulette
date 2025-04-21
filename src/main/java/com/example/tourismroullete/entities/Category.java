@@ -85,4 +85,8 @@ public class Category {
                 ", nameKey='" + nameKey + '\'' +
                 '}';
     }
+
+    @OneToMany(mappedBy = "category")
+    private Set<UserCategory> userCategories;  // This relationship links the Category to Users
+
 }

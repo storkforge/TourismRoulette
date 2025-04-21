@@ -4,67 +4,158 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tourism Roulette Karta</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/ol/dist/ol.js"></script>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .page-title {
+            font-size: 24px;
+            color: #333;
+        }
         #map {
             width: 100%;
             height: 500px;
+            position: relative;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        #activityPopup {
+            display: none;
+            position: absolute;
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 10px;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            border-radius: 4px;
+            max-width: 300px;
+            left: 0;
+            top: 0;
+        }
+        .close-btn {
+            float: right;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        button {
+            background-color: #4a90e2;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #4a90e2;
+        }
+        #recommendations {
+            margin-top: 30px;
+        }
+        h2 {
+            font-size: 20px;
+            color: #333;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            font-size: 16px;
+            color: #555;
         }
     </style>
 </head>
 <body>
-
-<h1>Välj en plats på kartan</h1>
-<div id="map"></div>
-<div id="recommendations">
-    <h2>Rekommenderade aktiviteter</h2>
-    <ul>
-        <li th:each="location : ${recommendations}" th:text="${location.activityName}"></li>
-    </ul>
+<input type="hidden" id="userRoleField" th:value="${#authentication != null ? #authentication.authorities[0].authority : 'ROLE_ANONYMOUS'}" />
+<div class="container">
+    <header>
+        <div class="page-title">Välj en plats på kartan</div>
+        <button id="dashboardButton"><i class="fas fa-arrow-left"></i> Tillbaka till Dashboard</button>
+    </header>
+    <div id="map">
+        <div id="activityPopup">
+            <span class="close-btn" onclick="closePopup()">×</span>
+            <h3 id="popupActivityName"></h3>
+            <p id="popupActivityDescription"></p>
+        </div>
+    </div>
+    <div id="recommendations">
+        <h2>Rekommenderade aktiviteter</h2>
+        <ul>
+            <li th:each="location : ${recommendations}" th:text="${location.activityName}"></li>
+        </ul>
+    </div>
+    <div class="button-container">
+        <button id="normalViewBtn">Normal View</button>
+        <button id="satelliteViewBtn">Satellite View</button>
+    </div>
 </div>
-<button id="normalViewBtn">Normal View</button>
-<button id="satelliteViewBtn">Satellite View</button>
 
 <script>
-    // Get user's initial location from the backend if available
-    var userLat = /*[[${userLocation != null ? userLocation.latitude : 59.3293}]]*/ 59.3293;
-    var userLon = /*[[${userLocation != null ? userLocation.longitude : 18.0686}]]*/ 18.0686;
+    var userRole = document.getElementById('userRoleField').value;
+    var userLat = 59.3293;
+    var userLon = 18.0686;
 
-    // Create the tile layers for both normal and satellite views
     var osmLayer = new ol.layer.Tile({
-        source: new ol.source.OSM()  // OpenStreetMap tiles (normal view)
+        source: new ol.source.OSM()
     });
 
     var satelliteLayer = new ol.layer.Tile({
         source: new ol.source.XYZ({
-            url: 'https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/256/{z}/{x}/{y}?access_token=sk.eyJ1IjoiZGVlbm9kZXYwMCIsImEiOiJjbTkxYzE4Zm8wdTB0MmtyMHhhMThiNnF3In0.8RarD0MKfR9iwjP773OOxQ'  // Satellite view using Mapbox
+            url: 'https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/256/{z}/{x}/{y}?access_token=sk.eyJ1IjoiZGVlbm9kZXYwMCIsImEiOiJjbTkxYzE4Zm8wdTB0MmtyMHhhMThiNnF3In0.8RarD0MKfR9iwjP773OOxQ'
         })
     });
 
-    // Create a map and add the default OpenStreetMap layer
     var map = new ol.Map({
         target: 'map',
-        layers: [osmLayer, satelliteLayer],  // Start with OpenStreetMap layer
+        layers: [osmLayer, satelliteLayer],
         view: new ol.View({
             center: ol.proj.fromLonLat([userLon, userLat]),
             zoom: 12
         })
     });
 
-    // Create the marker vector layer (this layer will be kept independent of tile layers)
+    satelliteLayer.setVisible(false);
+
     const markerSource = new ol.source.Vector();
     const markerLayer = new ol.layer.Vector({
         source: markerSource,
-        zIndex:99 //ensure markers appear above map
+        zIndex: 99
     });
-    map.addLayer(markerLayer);  // Add the marker layer to the map
+    map.addLayer(markerLayer);
 
-    // Function to add a marker
-    function addMarker(lon, lat, name) {
+    function addMarker(lon, lat, name, description) {
         const lonLat = ol.proj.fromLonLat([lon, lat]);
         const marker = new ol.Feature({
             geometry: new ol.geom.Point(lonLat),
             name: name,
+            description: description
         });
 
         marker.setStyle(new ol.style.Style({
@@ -78,60 +169,135 @@
         markerSource.addFeature(marker);
     }
 
+    function loadNearbyActivities(lat, lon) {
+        fetch(`/api/locations/recommendations?lat=${lat}&lon=${lon}`)
+            .then(response => response.json())
+            .then(data => {
+                markerSource.clear();
+                data.forEach(location => {
+                    addMarker(location.longitude, location.latitude, location.activityName, location.activityDescription);
+                });
 
+                const recList = document.getElementById("recommendations");
+                recList.innerHTML = "<h2>Rekommenderade aktiviteter</h2><ul>";
+                data.forEach(location => {
+                    recList.innerHTML += `<li>${location.activityName}</li>`;
+                });
+                recList.innerHTML += "</ul>";
+            });
+    }
 
-    // Add pre-loaded markers from Thymeleaf
-    var locations = /*[[${recommendations}]]*/ [];
-    locations.forEach(location => {
-        addMarker(location.longitude, location.latitude, location.activityName);
-    });
-
-    // Get buttons by their IDs for tile layer switching
     var normalViewBtn = document.getElementById('normalViewBtn');
     var satelliteViewBtn = document.getElementById('satelliteViewBtn');
 
-    // Event listener for Normal View button
     normalViewBtn.addEventListener('click', function () {
-        map.removeLayer(satelliteLayer);  // Remove satellite layer if added
-        map.addLayer(osmLayer);  // Add the normal OpenStreetMap layer
+        osmLayer.setVisible(true);
+        satelliteLayer.setVisible(false);
     });
 
-    // Event listener for Satellite View button
     satelliteViewBtn.addEventListener('click', function () {
-        map.removeLayer(osmLayer);  // Remove OpenStreetMap layer
-        map.addLayer(satelliteLayer);// Add the satellite layer
+        osmLayer.setVisible(false);
+        satelliteLayer.setVisible(true);
     });
 
-    // Geolocation: Center the map on user's actual location if allowed
     navigator.geolocation.getCurrentPosition(
         (position) => {
-            var userCoords = ol.proj.fromLonLat([position.coords.longitude, position.coords.latitude]);
+            const userLat = position.coords.latitude;
+            const userLon = position.coords.longitude;
+            const userCoords = ol.proj.fromLonLat([userLon, userLat]);
             map.getView().setCenter(userCoords);
             map.getView().setZoom(14);
+
+            addMarker(userLon, userLat, "Du är här", "Your current location");
+
+            loadNearbyActivities(userLat, userLon);
         },
-        (error) => console.log("Geolocation misslyckades:", error)
+        (error) => {
+            console.log("Geolocation misslyckades:", error);
+        }
     );
 
-    // Handle map clicks to fetch new recommendations
+    function showPopup(name, description, pixel) {
+        document.getElementById('popupActivityName').textContent = name;
+        document.getElementById('popupActivityDescription').textContent = description ? description : "No details available";
+
+        const popup = document.getElementById('activityPopup');
+        const mapContainer = document.getElementById('map');
+        const mapRect = mapContainer.getBoundingClientRect();
+
+        let left = pixel[0] + 10;
+        let top = pixel[1] - 10;
+
+        const popupWidth = 300;
+        const popupHeight = 150;
+
+        if (left + popupWidth > mapRect.width) {
+            left = pixel[0] - popupWidth - 10;
+        }
+
+        if (top + popupHeight > mapRect.height) {
+            top = pixel[1] - popupHeight - 10;
+        }
+
+        left = Math.max(0, left);
+        top = Math.max(0, top);
+
+        popup.style.left = left + 'px';
+        popup.style.top = top + 'px';
+        popup.style.display = 'block';
+    }
+
+    function closePopup() {
+        document.getElementById('activityPopup').style.display = 'none';
+    }
+
     map.on('click', function (event) {
-        const clickedLonLat = ol.proj.toLonLat(event.coordinate);
-        console.log("Plats vald (Lon/Lat):", clickedLonLat);
+        closePopup();
 
-        fetch(`/api/locations/recommendations?lat=${clickedLonLat[1]}&lon=${clickedLonLat[0]}`)
-            .then(response => response.json())
-            .then(data => {
-                markerSource.clear(); // Clear existing markers
-                document.getElementById("recommendations").innerHTML = "<h2>Rekommenderade aktiviteter</h2><ul>";
+        let markerClicked = false;
 
-                data.forEach(location => {
-                    addMarker(location.longitude, location.latitude, location.activityName);
-                    document.getElementById("recommendations").innerHTML += `<li>${location.activityName}</li>`;
+        map.forEachFeatureAtPixel(event.pixel, function (feature) {
+            const name = feature.get('name');
+            const description = feature.get('description');
+
+            if (name) {
+                showPopup(name, description, event.pixel);
+                markerClicked = true;
+                return true;
+            }
+        });
+
+        if (!markerClicked) {
+            const clickedLonLat = ol.proj.toLonLat(event.coordinate);
+
+            fetch(`/api/locations/recommendations?lat=${clickedLonLat[1]}&lon=${clickedLonLat[0]}`)
+                .then(response => response.json())
+                .then(data => {
+                    markerSource.clear(); // Clear existing markers
+                    document.getElementById("recommendations").innerHTML = "<h2>Rekommenderade aktiviteter</h2><ul>";
+
+                    data.forEach(location => {
+                        addMarker(location.longitude, location.latitude, location.activityName, location.activityDescription);
+                        document.getElementById("recommendations").innerHTML += `<li>${location.activityName}</li>`;
+                    });
+
+                    document.getElementById("recommendations").innerHTML += "</ul>";
                 });
-
-                document.getElementById("recommendations").innerHTML += "</ul>";
-            });
+        }
     });
+    // Event listener to redirect to /dashboard when button is clicked
+    var dashboardButton = document.getElementById('dashboardButton');
+    dashboardButton.addEventListener('click', function() {
+        if (userRole === 'ROLE_USER') {
+            window.location.href = '/user-panel'; // Redirect to user panel
+        } else if (userRole === 'ROLE_ADMIN') {
+            window.location.href = '/dashboard'; // Redirect to admin dashboard
+        } else {
+            window.location.href = '/login'; // Redirect to login if no role is found
+        }
+    })
 </script>
 
 </body>
 </html>
+</qodoArtifact>

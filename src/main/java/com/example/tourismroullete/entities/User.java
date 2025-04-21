@@ -1,25 +1,24 @@
 package com.example.tourismroullete.entities;
 
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.Set;
 
-
+@Entity
 @Table(name = "users")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
 public class User {
 
-    @jakarta.persistence.Id
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column (nullable = false, unique = true)
+    @Column(nullable = false, unique = true)
     private String username;
 
     @Column
@@ -40,6 +39,10 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    // Profilbild som en byte array
+    @Column(name = "profile_picture", columnDefinition = "BYTEA")
+    private byte[] profilePicture;
+
     private boolean enabled = true;
 
     @Column(name = "role")
@@ -55,4 +58,12 @@ public class User {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    @OneToMany(mappedBy = "user")
+    private Set<UserCategory> userCategories;  // Den här relationen länkar User till Categories
+
+    @Column(length = 100)
+    private String name;  // Om du vill använda en kortare namn-version
+
+
 }

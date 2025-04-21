@@ -32,6 +32,14 @@
       font-size: 24px;
       color: #333;
     }
+    .activity-image {
+      width: 300px;        /* or any size you like */
+      height: auto;        /* keeps the aspect ratio */
+      display: block;
+      margin: 0 auto;      /* centers the image horizontally */
+      border-radius: 8px;  /* optional: smooth rounded corners */
+      object-fit: cover;   /* trims if needed without distortion */
+    }
     .nav-links {
       display: flex;
       gap: 10px;
@@ -129,6 +137,9 @@
       gap: 20px;
     }
     .activity-card {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
       background: white;
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -139,14 +150,11 @@
       transform: translateY(-5px);
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     }
-    .activity-image {
+    .activity-image, .activity-map-image {
+      width: 100%;
       height: 180px;
-      background-color: #e9ecef;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #6c757d;
-      font-size: 24px;
+      object-fit: cover;
+      display: block;
     }
     .activity-content {
       padding: 15px;
@@ -216,16 +224,26 @@
       color: #721c24;
       border: 1px solid #f5c6cb;
     }
+    .language-selector {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      text-align: left;
+      padding: 10px 0;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
+<input type="hidden" id="userRoleField" th:value="${#authentication != null ? #authentication.authorities[0].authority : 'ROLE_ANONYMOUS'}" />
 <div class="container">
   <header>
     <h1 class="page-title">Activities</h1>
     <div class="nav-links">
-      <a href="/dashboard" class="nav-link">Dashboard</a>
-      <a href="/categories" class="nav-link">Categories</a>
-      <a href="/activities/new" class="nav-link">Add Activity</a>
+      <button id="dashboardButton" class="nav-link" th:text="#{dashboard}">Dashboard</button>
+      <a href="/categories" class="nav-link" th:text="#{preferences}">Categories</a>
+      <a href="/activities/new" class="nav-link" th:text="#{addActivity}">Add Activity</a>
     </div>
   </header>
 
@@ -248,33 +266,41 @@
       </div>
 
       <!-- Category Filter -->
-      <div class="filter-title">Filter by Categories</div>
+      <div class="filter-title" th:text="#{filterCategories}">Filter by Categories</div>
       <div class="category-filters">
         <div th:each="cat : ${categories}">
-          <input type="checkbox" name="categoryIds" th:id="'cat-' + ${cat.id}" th:value="${cat.id}"
-                 class="category-checkbox" th:checked="${selectedCategories != null && selectedCategories.contains(cat.id)}">
-          <label th:for="'cat-' + ${cat.id}" class="category-label" th:text="${cat.name}">Category Name</label>
+          <input type="checkbox"
+                 name="categoryIds"
+                 th:id="'cat-' + ${cat.id}"
+                 th:value="${cat.id}"
+                 class="category-checkbox"
+                 th:checked="${selectedCategories != null && selectedCategories.contains(cat.id)}" />
+          <label th:for="'cat-' + ${cat.id}" class="category-label">
+            <span th:text="${cat.name}"></span>
+            <span th:if="${preferredCategoryIds != null and preferredCategoryIds.contains(cat.id)}"
+                  style="margin-left: 5px; font-size: 12px; color: #4a90e2;">★</span>
+          </label>
         </div>
       </div>
 
       <!-- Filter Actions -->
       <div class="filter-actions">
-        <button type="submit" class="filter-button">Apply Filters</button>
-        <button type="button" id="clearFilters" class="clear-button">Clear Filters</button>
+        <button type="submit" class="filter-button" th:text="#{applyFilters}">Apply Filters</button>
+        <button type="button" id="clearFilters" class="clear-button" th:text="#{clearFilters}">Clear Filters</button>
       </div>
     </form>
   </div>
 
   <!-- Empty state message -->
   <div th:if="${#lists.isEmpty(activities)}" class="empty-message">
-    <p>No activities found. Try adjusting your search filters or click "Add Activity" to create one.</p>
+    <p th:text="#{noActivitiesFound}">No activities found. Try adjusting your search filters or click "Add Activity" to create one.</p>
   </div>
 
   <!-- Activities grid -->
   <div class="activity-grid" th:unless="${#lists.isEmpty(activities)}">
     <div class="activity-card" th:each="activity : ${activities}">
-      <div class="activity-image">
-        <i class="fas fa-map-marker-alt"></i>
+      <div class="activity-location">
+        <img th:src="${activity.imageUrl}" alt="Activity Image" class="activity-image"/>
       </div>
       <div class="activity-content">
         <h2 class="activity-title" th:text="${activity.name}">Activity Name</h2>
@@ -282,13 +308,18 @@
         <div class="activity-categories">
           <span class="activity-category" th:each="cat : ${activity.categories}" th:text="${cat.name}">Category</span>
         </div>
-        <a th:href="@{/activities/{id}(id=${activity.id})}" class="activity-link">View Details</a>
+        <a th:href="@{/activities/{id}(id=${activity.id})}" class="activity-link" th:text="#{viewDetails}">View Details</a>
       </div>
     </div>
   </div>
 </div>
+<div class="language-selector">
+  <a href="?lang=en">🇬🇧 English</a> |
+  <a href="?lang=sv">🇸🇪 Svenska</a>
+</div>
 
 <script>
+  var userRole = document.getElementById('userRoleField').value;
   document.addEventListener('DOMContentLoaded', function() {
     // Clear filters button
     document.getElementById('clearFilters').addEventListener('click', function() {
@@ -305,6 +336,18 @@
       document.getElementById('searchForm').submit();
     });
   });
+
+  // Event listener to redirect to /dashboard when button is clicked
+  var dashboardButton = document.getElementById('dashboardButton');
+  dashboardButton.addEventListener('click', function() {
+    if (userRole === 'ROLE_USER') {
+      window.location.href = '/user-panel'; // Redirect to user panel
+    } else if (userRole === 'ROLE_ADMIN') {
+      window.location.href = '/dashboard'; // Redirect to admin dashboard
+    } else {
+      window.location.href = '/login'; // Redirect to login if no role is found
+    }
+  })
 </script>
 </body>
 </html>

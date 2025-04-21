@@ -1,0 +1,56 @@
+CREATE TABLE activity_categories (
+    activity_id BIGINT,
+    category_id BIGINT,
+    PRIMARY KEY (activity_id, category_id),
+    FOREIGN KEY (activity_id) REFERENCES activities(id),
+    FOREIGN KEY (category_id) REFERENCES categories(id)
+);
+
+
+CREATE TABLE activity_categories (
+    activity_id BIGINT,
+    category_id BIGINT,
+    PRIMARY KEY (activity_id, category_id),
+    FOREIGN KEY (activity_id) REFERENCES activities(id),
+    FOREIGN KEY (category_id) REFERENCES categories(id)
+);
+
+INSERT INTO Activities (id, description, duration_minutes, location, name, price) VALUES
+(1, 'Hike in the beautiful Gothenburg Archipelago with stunning views', 180, 'Gothenburg Archipelago', 'Archipelago Hiking', 400),
+(2, 'Relaxing spa treatment at a luxurious spa in Gothenburg city center', 120, 'Gothenburg City Center', 'Gothenburg Spa', 600),
+(3, 'Explore the city’s rich history at the Gothenburg Museum of Art', 90, 'Gothenburg Museum of Art', 'Museum Visit', 150),
+(4, 'Enjoy a food tour through Gothenburg with tastings at local restaurants', 180, 'Gothenburg City Center', 'Food Tour', 700),
+(5, 'Take a walk in the picturesque Slottsskogen Park', 60, 'Slottsskogen Park, Gothenburg', 'Park Walk', 0),
+(6, 'Visit the iconic Gothenburg Opera House for a stunning performance', 180, 'Gothenburg Opera House', 'Opera Performance', 500),
+(7, 'Take a boat tour around Gothenburg’s harbor and waterways', 90, 'Gothenburg Harbor', 'Harbor Boat Tour', 350),
+(8, 'Shop for unique Scandinavian products at the Nordstan Mall in Gothenburg', 120, 'Nordstan Mall, Gothenburg', 'Shopping Experience', 0);
+
+
+
+-- Archipelago Hiking -> Adventure
+INSERT INTO Activity_Categories (activity_id, category_id) VALUES (1, 1);
+
+-- Gothenburg Spa -> Relaxation
+INSERT INTO Activity_Categories (activity_id, category_id) VALUES (2, 2);
+
+-- Museum Visit -> Culture
+INSERT INTO Activity_Categories (activity_id, category_id) VALUES (3, 3);
+
+-- Food Tour -> Food & Drink
+INSERT INTO Activity_Categories (activity_id, category_id) VALUES (4, 4);
+
+-- Park Walk -> Nature
+INSERT INTO Activity_Categories (activity_id, category_id) VALUES (5, 5);
+
+-- Opera Performance -> Entertainment
+INSERT INTO Activity_Categories (activity_id, category_id) VALUES (6, 7);
+
+-- Harbor Boat Tour -> Adventure
+INSERT INTO Activity_Categories (activity_id, category_id) VALUES (7, 1);
+
+-- Shopping Experience -> Shopping
+INSERT INTO Activity_Categories (activity_id, category_id) VALUES (8, 8);
+
+
+
+

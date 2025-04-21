@@ -2,38 +2,70 @@ package com.example.tourismroullete.controller;
 
 import com.example.tourismroullete.entities.Activity;
 import com.example.tourismroullete.entities.Category;
+import com.example.tourismroullete.entities.User;
+import com.example.tourismroullete.entities.UserCategory;
+import com.example.tourismroullete.repositories.UserCategoryRepository;
+import com.example.tourismroullete.repositories.UserRepository;
 import com.example.tourismroullete.service.ActivityService;
 import com.example.tourismroullete.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import com.example.tourismroullete.repositories.UserCategoryRepository;
+import com.example.tourismroullete.repositories.UserRepository;
+
 import java.util.*;
+import java.util.stream.Collectors;
+
 
 @Controller
 public class ActivityController {
 
     private final ActivityService activityService;
     private final CategoryService categoryService;
+    private final UserRepository userRepository;
+    private final UserCategoryRepository userCategoryRepository;
 
     @Autowired
-    public ActivityController(ActivityService activityService, CategoryService categoryService) {
+    public ActivityController(ActivityService activityService,
+                              CategoryService categoryService,
+                              UserRepository userRepository,
+                              UserCategoryRepository userCategoryRepository) {
         this.activityService = activityService;
         this.categoryService = categoryService;
+        this.userRepository = userRepository;
+        this.userCategoryRepository = userCategoryRepository;
     }
 
     // Web UI endpoints
 
     @GetMapping("/activities")
-    public String listActivities(Model model) {
+    public String listActivities(Model model, Authentication authentication) {
         List<Activity> activities = activityService.getAllActivities();
         List<Category> categories = categoryService.getAllCategories();
+
+        List<Long> preferredCategoryIds = new ArrayList<>();
+        if (authentication != null && authentication.isAuthenticated()) {
+            String username = authentication.getName();
+            Optional<User> userOpt = userRepository.findByUsername(username);
+            if (userOpt.isPresent()) {
+                Long userId = userOpt.get().getId();
+                List<UserCategory> userCategories = userCategoryRepository.findByUserId(userId);
+                preferredCategoryIds = userCategories.stream()
+                        .map(uc -> uc.getCategory().getId())
+                        .collect(Collectors.toList());
+            }
+        }
 
         model.addAttribute("activities", activities);
         model.addAttribute("categories", categories);
         model.addAttribute("selectedCategories", Collections.emptyList());
+        model.addAttribute("preferredCategoryIds", preferredCategoryIds); // 👈 add this
 
         return "activities";
     }
@@ -89,9 +121,29 @@ public class ActivityController {
     @GetMapping("/activities/{id}")
     public String viewActivity(@PathVariable Long id, Model model) {
         Activity activity = activityService.getActivityById(id);
+
+        String location = activity.getLocation();
+        if (location != null && !location.isEmpty()) {
+            String[] parts = location.split(", ");
+            String latString = parts[0].split(": ")[1];
+            String lonString = parts[1].split(": ")[1];
+
+            try {
+                double latitude = Double.parseDouble(latString);
+                double longitude = Double.parseDouble(lonString);
+                activity.setLatitude(latitude);
+                activity.setLongitude(longitude);
+                // Debugging: Print the latitude and longitude
+                System.out.println("Latitude: " + latitude + ", Longitude: " + longitude);
+            } catch (NumberFormatException e) {
+                System.out.println("Error parsing location: " + e.getMessage());
+            }
+        }
+
         model.addAttribute("activity", activity);
         return "activity-details";
     }
+
 
     @GetMapping("/activities/new")
     public String newActivityForm(Model model) {
@@ -177,4 +229,5 @@ public class ActivityController {
             @RequestParam(required = false) Set<Long> categoryIds) {
         return activityService.searchActivities(term, categoryIds);
     }
+
 }
