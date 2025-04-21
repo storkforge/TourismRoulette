@@ -1,10 +1,12 @@
+
 package com.example.tourismroullete.repositories;
 
 import com.example.tourismroullete.entities.PasskeyUser;
 import com.example.tourismroullete.entities.User;
 import com.example.tourismroullete.entities.WebauthnCredentials;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.webauthn.api.Bytes;
@@ -13,15 +15,23 @@ import org.springframework.security.web.webauthn.api.PublicKeyCredentialUserEnti
 import org.springframework.security.web.webauthn.management.PublicKeyCredentialUserEntityRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 import java.util.Base64;
 
-@Slf4j
 @Repository
 @RequiredArgsConstructor
 public class DbPublicKeyCredentialUserEntityRepository implements PublicKeyCredentialUserEntityRepository {
 
+    private static final Logger log = LoggerFactory.getLogger(DbPublicKeyCredentialUserEntityRepository.class);
+
     private final WebAuthnCredentialRepository webAuthnCredentialRepository;
     private final UserRepository userRepository;
+
+    public DbPublicKeyCredentialUserEntityRepository(WebAuthnCredentialRepository webAuthnCredentialRepository, UserRepository userRepository) {
+        this.webAuthnCredentialRepository = webAuthnCredentialRepository;
+        this.userRepository = userRepository;
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -66,13 +76,14 @@ public class DbPublicKeyCredentialUserEntityRepository implements PublicKeyCrede
             passkeyUser.setExternalId(externalId);
             passkeyUser.setName(userEntity.getName());
             passkeyUser.setDisplayName(userEntity.getDisplayName());
+            passkeyUser.setCreatedAt(LocalDateTime.now());
             credential.setPasskeyUser(passkeyUser);
         }
 
         // Store the actual WebAuthn credential data
         credential.setCredentialId(externalId);
-        // Note: The actual publicKeyCose and signCount will be set by the UserCredentialRepository
-        // during the registration process. We're just creating the initial user entity here.
+
+        // Only set user reference here; do not set publicKeyCose or signCount!
         credential.setUser(currentUser);
 
         webAuthnCredentialRepository.save(credential);

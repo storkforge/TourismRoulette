@@ -1,5 +1,6 @@
 package com.example.tourismroullete.config;
 
+import com.example.tourismroullete.repositories.*;
 import com.example.tourismroullete.service.CustomOAuth2UserService;
 import com.example.tourismroullete.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
@@ -9,6 +10,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.webauthn.management.PublicKeyCredentialUserEntityRepository;
+import org.springframework.security.web.webauthn.management.UserCredentialRepository;
 
 @Configuration
 public class SecurityConfig {
@@ -16,15 +19,18 @@ public class SecurityConfig {
     private final CustomAuthenticationSuccessHandler successHandler;
     private final CustomOAuth2UserService oAuth2UserService;
     private final CustomUserDetailsService customUserDetailsService;
+    private final PasskeyuserRepository passkeyuserRepository;
 
     public SecurityConfig(
             @Lazy CustomUserDetailsService customUserDetailsService,
             CustomAuthenticationSuccessHandler successHandler,
-            CustomOAuth2UserService oAuth2UserService
+            CustomOAuth2UserService oAuth2UserService,
+            PasskeyuserRepository passkeyuserRepository
     ) {
         this.customUserDetailsService = customUserDetailsService;
         this.successHandler = successHandler;
         this.oAuth2UserService = oAuth2UserService;
+        this.passkeyuserRepository = passkeyuserRepository;
     }
 
     @Bean
@@ -85,5 +91,18 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
+
+
+    @Bean
+    PublicKeyCredentialUserEntityRepository userEntityRepository(PasskeyuserRepository passkeyuserRepository) {
+        return new DbPublicKeyCredentialUserEntityRepository(passkeyuserRepository);
+    }
+
+    @Bean
+    UserCredentialRepository userCredentialRepository(PasskeyuserRepository passkeyuserRepository, PasskeyCredentialRepository credentialRepository) {
+        return new DbUserCredentialRepository(credentialRepository, passkeyuserRepository);
+
+
     }
 }

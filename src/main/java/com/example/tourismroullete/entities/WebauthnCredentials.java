@@ -19,13 +19,13 @@ public class WebauthnCredentials {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "credential_id", nullable = false, unique = true)
+    @Column(name = "credential_id", unique = true, length = 4096)
     private String credentialId;
 
-    @Column(name = "public_key_cose", nullable = false)
+    @Column(name = "public_key_cose")
     private String publicKeyCose;
 
-    @Column(nullable = false)
+    @Column()
     private Long signCount;
 
     @ManyToOne(fetch = FetchType.LAZY)
