@@ -9,7 +9,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Data
+@Setter
+@Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,13 +20,6 @@ public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    //private String title;
-
-    //@Column(length = 2000)
-   // private String content;
-
-   // private String location;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

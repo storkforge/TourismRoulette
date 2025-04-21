@@ -56,7 +56,11 @@ public class PostController {
             @RequestParam(value = "image", required = false) MultipartFile imageFile,
             @AuthenticationPrincipal User user
     ) {
+        String userName = principal.getName();
+        User user = userService.findByUsername(userName).orElseThrow();
+
         Post post = new Post();
+        post.setAuthor(user);
         post.setTitle(title);
         post.setLocation(location);
         post.setContent(content);
@@ -105,6 +109,3 @@ public class PostController {
 
 }
 
-// ===============================================
-// Thymeleaf Controller för att hantera webbsidan
-// ===============================================
