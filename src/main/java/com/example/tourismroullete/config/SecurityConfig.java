@@ -44,6 +44,8 @@ public class SecurityConfig {
                         .requestMatchers("/access-denied").permitAll()
                         .requestMatchers("/graphql", "/graphiql").permitAll() // Allow access to GraphQL and GraphiQL
 
+                        .requestMatchers("/api/posts/**").permitAll()
+
                         // Admin-only access to category and activity management
                         .requestMatchers("/dashboard").hasRole("ADMIN")
                         .requestMatchers("/categories/new", "/categories/edit/**", "/categories/delete/**").hasRole("ADMIN")
