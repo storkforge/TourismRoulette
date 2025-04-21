@@ -4,6 +4,7 @@ import com.example.tourismroullete.entities.ChatMessage;
 import com.example.tourismroullete.entities.User;
 import com.example.tourismroullete.repositories.ChatMessageRepository;
 import com.example.tourismroullete.repositories.UserRepository;
+import com.example.tourismroullete.service.ChatCacheService;
 import lombok.Data;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,14 +23,17 @@ public class ChatController {
     private final ChatMessageRepository chatMessageRepository;
     private final UserRepository userRepository;
     private final ChatClient chatClient;
+    private final ChatCacheService chatCacheService;
 
     @Autowired
     public ChatController(ChatMessageRepository chatMessageRepository,
                           UserRepository userRepository,
-                          ChatClient chatClient) {
+                          ChatClient chatClient,
+                          ChatCacheService chatCacheService) {
         this.chatMessageRepository = chatMessageRepository;
         this.userRepository = userRepository;
         this.chatClient = chatClient;
+        this.chatCacheService = chatCacheService;
     }
 
     @PostMapping
@@ -43,26 +47,23 @@ public class ChatController {
         String sessionId = request.getSessionId();
         String message = request.getMessage();
 
-        // Save user message
-        ChatMessage userMsg = new ChatMessage();
-        userMsg.setUser(user);
-        userMsg.setSender("User");
-        userMsg.setText(message);
-        userMsg.setTimestamp(LocalDateTime.now());
-        userMsg.setSessionId(sessionId);
-        chatMessageRepository.save(userMsg);
+        // 1. Try to retrieve cached AI response
+        String cachedResponse = chatCacheService.getCachedResponse(user.getId(), message);
+        String aiResponse;
 
-        // Get AI response
-        String aiResponse = chatClient.prompt().user(message).call().content();
+        if (cachedResponse != null) {
+            aiResponse = cachedResponse;
+        } else {
+            // 2. Not cached → fetch from AI model
+            aiResponse = chatClient.prompt().user(message).call().content();
 
-        // Save AI response
-        ChatMessage aiMsg = new ChatMessage();
-        aiMsg.setUser(user);
-        aiMsg.setSender("AI");
-        aiMsg.setText(aiResponse);
-        aiMsg.setTimestamp(LocalDateTime.now());
-        aiMsg.setSessionId(sessionId);
-        chatMessageRepository.save(aiMsg);
+            // 3. Cache the response
+            chatCacheService.cacheResponse(user.getId(), message, aiResponse);
+        }
+
+        // 4. Save user and AI messages to DB
+        saveChatMessage(user, "User", message, sessionId);
+        saveChatMessage(user, "AI", aiResponse, sessionId);
 
         return ResponseEntity.ok(aiResponse);
     }
@@ -85,6 +86,16 @@ public class ChatController {
                 ));
 
         return ResponseEntity.ok(historyGroupedBySession);
+    }
+
+    private void saveChatMessage(User user, String sender, String text, String sessionId) {
+        ChatMessage msg = new ChatMessage();
+        msg.setUser(user);
+        msg.setSender(sender);
+        msg.setText(text);
+        msg.setTimestamp(LocalDateTime.now());
+        msg.setSessionId(sessionId);
+        chatMessageRepository.save(msg);
     }
 
     // DTO for chat requests
