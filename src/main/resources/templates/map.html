@@ -34,7 +34,7 @@
     </style>
 </head>
 <body>
-
+<button id="dashboardButton">Tillbaka till Dashboard</button>
 <h1>Välj en plats på kartan</h1>
 <div id="map">
     <div id="activityPopup">
@@ -251,6 +251,11 @@
                     document.getElementById("recommendations").innerHTML += "</ul>";
                 });
         }
+    });
+    // Event listener to redirect to /dashboard when button is clicked
+    var dashboardButton = document.getElementById('dashboardButton');
+    dashboardButton.addEventListener('click', function() {
+        window.location.href = '/dashboard'; // Navigate to the dashboard page
     });
 </script>
 
