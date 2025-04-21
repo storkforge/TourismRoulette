@@ -243,47 +243,76 @@
         });
 </script>
 <script>
+    // Create map view
+    const view = new ol.View({
+        center: ol.proj.fromLonLat([0, 0]),
+        zoom: 2
+    });
+
+    // Create a vector layer for the marker
+    const markerSource = new ol.source.Vector();
+    const markerStyle = new ol.style.Style({
+        image: new ol.style.Circle({
+            radius: 10, // Increase the radius to make the pin larger
+            fill: new ol.style.Fill({ color: 'red' }),
+            stroke: new ol.style.Stroke({ color: 'white', width: 2 })
+        })
+    });
+    const markerLayer = new ol.layer.Vector({
+        source: markerSource,
+        style: markerStyle
+    });
+
     // Initialize the map
     const map = new ol.Map({
         target: 'map',
         layers: [
             new ol.layer.Tile({
                 source: new ol.source.OSM()
-            })
+            }),
+            markerLayer
         ],
-        view: new ol.View({
-            center: ol.proj.fromLonLat([0, 0]),
-            zoom: 2
-        })
+        view: view
     });
 
-    // Create a marker layer
-    const markerLayer = new ol.layer.Vector({
-        source: new ol.source.Vector()
-    });
-    map.addLayer(markerLayer);
-
-    // Add click event
+    // Handle map click to add marker
     map.on('click', function (event) {
-        const coordinates = ol.proj.toLonLat(event.coordinate);
-        const lon = coordinates[0].toFixed(6);
-        const lat = coordinates[1].toFixed(6);
+        const coordinate = ol.proj.toLonLat(event.coordinate);
+        const lon = coordinate[0].toFixed(6);
+        const lat = coordinate[1].toFixed(6);
 
-        // Set the values in the form fields
-        document.getElementById('longitude').value = lon;
         document.getElementById('latitude').value = lat;
-        document.getElementById('location').value = `Lat: ${lat}, Lon: ${lon}`; // You can format this differently
+        document.getElementById('longitude').value = lon;
+        document.getElementById('location').value = `Lat: ${lat}, Lon: ${lon}`;
 
-        // Clear existing markers
-        markerLayer.getSource().clear();
-
-        // Add a new marker
+        markerSource.clear();
         const marker = new ol.Feature({
             geometry: new ol.geom.Point(event.coordinate)
         });
-
-        markerLayer.getSource().addFeature(marker);
+        markerSource.addFeature(marker);
     });
+
+    // Automatically zoom in on user's location when available
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function (position) {
+            const lon = position.coords.longitude;
+            const lat = position.coords.latitude;
+            const coords = ol.proj.fromLonLat([lon, lat]);
+
+            view.setCenter(coords);
+            view.setZoom(14);
+
+            markerSource.clear();
+            const marker = new ol.Feature({
+                geometry: new ol.geom.Point(coords)
+            });
+            markerSource.addFeature(marker);
+
+            document.getElementById('latitude').value = lat.toFixed(6);
+            document.getElementById('longitude').value = lon.toFixed(6);
+            document.getElementById('location').value = `Lat: ${lat.toFixed(6)}, Lon: ${lon.toFixed(6)}`;
+        });
+    }
 </script>
 
 </body>
