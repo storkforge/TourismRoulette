@@ -5,6 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -113,6 +115,7 @@
     .info-label {
       font-weight: bold;
       color: #495057;
+      display: block;
     }
     .info-value {
       color: #6c757d;
@@ -148,6 +151,12 @@
       background-color: #f8d7da;
       color: #721c24;
       border: 1px solid #f5c6cb;
+    }
+    .activity-map {
+      height: 300px;
+      width: 100%;
+      border: 2px solid red; /* Debugging */
+      background-color: lightgray; /* Debugging */
     }
   </style>
 </head>
@@ -189,45 +198,80 @@
         Detailed description of the activity goes here...
       </p>
 
-      <!-- Activity Details -->
-      <div class="activity-info">
-        <!-- Location -->
-        <div class="info-item" th:if="${activity.location}">
-          <i class="fas fa-map-marker-alt"></i>
-          <span class="info-label">Location:</span>
-          <span class="info-value" th:text="${activity.location}">Location</span>
-        </div>
+      <div class="info-item" th:if="${activity.latitude != null && activity.longitude != null}">
+        <i class="fas fa-map-marker-alt"></i>
+        <span class="info-label">Location:</span><br>
 
-        <!-- Duration -->
-        <div class="info-item" th:if="${activity.durationMinutes}">
-          <i class="fas fa-clock"></i>
-          <span class="info-label">Duration:</span>
-          <span class="info-value">
+        <!-- Map container -->
+        <div id="activity-map" style="height: 300px; width: 100%; border-radius: 8px; margin-top: 10px;"></div>
+      </div>
+      <hr>
+      <!-- Duration -->
+      <div class="info-item" th:if="${activity.durationMinutes}">
+        <i class="fas fa-clock"></i>
+        <span class="info-label">Duration:</span>
+        <span class="info-value">
             <span th:if="${activity.durationMinutes < 60}" th:text="${activity.durationMinutes} + ' minutes'"></span>
             <span th:if="${activity.durationMinutes >= 60}"
                   th:text="${activity.durationMinutes / 60} + ' hour(s) ' + ${activity.durationMinutes % 60} + ' minute(s)'">
             </span>
           </span>
-        </div>
-
-        <!-- Price -->
-        <div class="info-item" th:if="${activity.price}">
-          <i class="fas fa-tag"></i>
-          <span class="info-label">Price:</span>
-          <span class="info-value" th:text="${'$' + activity.price}">Price</span>
-        </div>
       </div>
 
-      <!-- Categories -->
-      <h3>Categories</h3>
-      <div class="activity-categories">
-        <span class="activity-category" th:each="category : ${activity.categories}" th:text="${category.name}">Category</span>
-        <span th:if="${activity.categories.isEmpty()}" class="info-value">No categories assigned</span>
+      <!-- Price -->
+      <div class="info-item" th:if="${activity.price}">
+        <i class="fas fa-tag"></i>
+        <span class="info-label">Price:</span>
+        <span class="info-value" th:text="${'$' + activity.price}">Price</span>
       </div>
     </div>
 
-    <a href="/activities" class="back-link">← Back to Activities</a>
+    <!-- Categories -->
+    <h3>Categories</h3>
+    <div class="activity-categories">
+      <span class="activity-category" th:each="category : ${activity.categories}" th:text="${category.name}">Category</span>
+      <span th:if="${activity.categories.isEmpty()}" class="info-value">No categories assigned</span>
+    </div>
   </div>
+
+  <a href="/activities" class="back-link">← Back to Activities</a>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+<!-- Hidden div to store coordinates -->
+<div id="activity-data" th:data-lat="${activity.latitude}" th:data-lng="${activity.longitude}" style="display: none;"></div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var dataDiv = document.getElementById("activity-data");
+    var lat = parseFloat(dataDiv.getAttribute("data-lat")) || 0;
+    var lng = parseFloat(dataDiv.getAttribute("data-lng")) || 0;
+
+    console.log("Lat:", lat, "Lng:", lng); // Debugging
+
+    var mapContainer = document.getElementById("activity-map");
+    if (!mapContainer) {
+      console.error("Error: #activity-map not found.");
+      return;
+    }
+
+    var map = L.map('activity-map').setView([lat, lng], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    L.marker([lat, lng]).addTo(map)
+            .bindPopup("Activity Location")
+            .openPopup();
+
+    setTimeout(function() {
+      map.invalidateSize();  // Forces Leaflet to recalculate map dimensions
+    }, 500);
+  });
+</script>
 </div>
 </body>
 </html>

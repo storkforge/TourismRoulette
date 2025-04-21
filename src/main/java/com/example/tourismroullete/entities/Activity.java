@@ -1,5 +1,6 @@
 package com.example.tourismroullete.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -30,6 +31,7 @@ public class Activity {
     @JsonProperty("activityDescription")
     private String description;
 
+
     private String location;
 
     @Column(name = "duration_minutes")
@@ -46,6 +48,7 @@ public class Activity {
             joinColumns = @JoinColumn(name = "activity_id"),
             inverseJoinColumns = @JoinColumn(name = "category_id")
     )
+    @JsonIgnore
     private Set<Category> categories = new HashSet<>();
 
     // Additional non-persistent fields for JSON mapping
@@ -77,6 +80,23 @@ public class Activity {
         this.latitude = lat;
         this.longitude = lon;
     }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
 
     // Helper methods for managing the bidirectional relationship
     public void addCategory(Category category) {

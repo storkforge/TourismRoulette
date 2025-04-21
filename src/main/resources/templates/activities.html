@@ -32,6 +32,14 @@
       font-size: 24px;
       color: #333;
     }
+    .activity-image {
+      width: 300px;        /* or any size you like */
+      height: auto;        /* keeps the aspect ratio */
+      display: block;
+      margin: 0 auto;      /* centers the image horizontally */
+      border-radius: 8px;  /* optional: smooth rounded corners */
+      object-fit: cover;   /* trims if needed without distortion */
+    }
     .nav-links {
       display: flex;
       gap: 10px;
@@ -129,6 +137,9 @@
       gap: 20px;
     }
     .activity-card {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
       background: white;
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -139,14 +150,11 @@
       transform: translateY(-5px);
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     }
-    .activity-image {
+    .activity-image, .activity-map-image {
+      width: 100%;
       height: 180px;
-      background-color: #e9ecef;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #6c757d;
-      font-size: 24px;
+      object-fit: cover;
+      display: block;
     }
     .activity-content {
       padding: 15px;
@@ -216,6 +224,15 @@
       color: #721c24;
       border: 1px solid #f5c6cb;
     }
+    .language-selector {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      text-align: left;
+      padding: 10px 0;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
@@ -281,8 +298,8 @@
   <!-- Activities grid -->
   <div class="activity-grid" th:unless="${#lists.isEmpty(activities)}">
     <div class="activity-card" th:each="activity : ${activities}">
-      <div class="activity-image">
-        <i class="fas fa-map-marker-alt"></i>
+      <div class="activity-location">
+        <img th:src="${activity.imageUrl}" alt="Activity Image" class="activity-image"/>
       </div>
       <div class="activity-content">
         <h2 class="activity-title" th:text="${activity.name}">Activity Name</h2>
@@ -295,7 +312,7 @@
     </div>
   </div>
 </div>
-<div>
+<div class="language-selector">
   <a href="?lang=en">🇬🇧 English</a> |
   <a href="?lang=sv">🇸🇪 Svenska</a>
 </div>
