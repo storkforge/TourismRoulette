@@ -1,50 +1,81 @@
 package com.example.tourismroullete.controller;
 
+import com.example.tourismroullete.entities.ChatMessage;
+import com.example.tourismroullete.entities.User;
+import com.example.tourismroullete.repositories.ChatMessageRepository;
+import com.example.tourismroullete.repositories.UserRepository;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.ai.mistralai.MistralAiChatModel;
 import org.springframework.web.bind.annotation.*;
-import jakarta.servlet.http.HttpSession;
+
+import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/ai/RouletteBot")
 public class ChatbotController {
 
     private final MistralAiChatModel chatModel;
+    private final ChatMessageRepository chatMessageRepository;
+    private final UserRepository userRepository;
 
-    public ChatbotController(MistralAiChatModel chatModel) {
+    public ChatbotController(MistralAiChatModel chatModel,
+                             ChatMessageRepository chatMessageRepository,
+                             UserRepository userRepository) {
         this.chatModel = chatModel;
+        this.chatMessageRepository = chatMessageRepository;
+        this.userRepository = userRepository;
     }
 
     @PostMapping
-    public String chatWithAi(@RequestBody String prompt, HttpSession session) {
-        // Call the AI model
+    public String chatWithAi(@RequestBody String prompt, HttpSession session, Principal principal) {
         String response = chatModel.call(prompt);
 
-        // Retrieve the current session history or initialize an empty list
-        List<String> history = (List<String>) session.getAttribute("aiHistory");
+        // Handle authenticated user
+        if (principal != null) {
+            Optional<User> userOpt = userRepository.findByUsername(principal.getName());
 
-        // Check if the retrieved object is a List<String> before casting
-        if (history == null || !(history instanceof List)) {
-            history = new ArrayList<>();
+            userOpt.ifPresent(user -> {
+                chatMessageRepository.save(new ChatMessage(null, user, "USER", prompt, LocalDateTime.now()));
+                chatMessageRepository.save(new ChatMessage(null, user, "AI", response, LocalDateTime.now()));
+            });
+
+        } else {
+            // Fallback to session-based history
+            Optional<List<String>> historyOpt = Optional.ofNullable((List<String>) session.getAttribute("aiHistory"));
+
+            List<String> history = historyOpt.orElse(new ArrayList<>());
+            history.add("User: " + prompt);
+            history.add("AI: " + response);
+
+            session.setAttribute("aiHistory", history);
         }
 
-        // Add the prompt and response to the session history
-        history.add("User: " + prompt);
-        history.add("AI: " + response);
-
-        // Save the updated history back to the session
-        session.setAttribute("aiHistory", history);
-
-        // Return the AI response
         return response;
     }
 
-
     @GetMapping("/history")
-    public List<String> getHistory(HttpSession session) {
-        // Retrieve the history from the session (if exists)
-        List<String> history = (List<String>) session.getAttribute("aiHistory");
-        return history != null ? history : new ArrayList<>();
+    public List<String> getHistory(HttpSession session, Principal principal) {
+        List<String> history = new ArrayList<>();
+
+        // Handle authenticated user
+        if (principal != null) {
+            Optional<User> userOpt = userRepository.findByUsername(principal.getName());
+
+            userOpt.ifPresent(user -> {
+                chatMessageRepository.findByUserOrderByTimestampAsc(user)
+                        .forEach(msg -> history.add(msg.getRole() + ": " + msg.getMessage()));
+            });
+
+        } else {
+            // Handle session-based history
+            Optional<List<String>> sessionHistoryOpt = Optional.ofNullable((List<String>) session.getAttribute("aiHistory"));
+            sessionHistoryOpt.ifPresent(history::addAll);
+        }
+
+        return history;
     }
 }
