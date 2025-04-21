@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/ol/dist/ol.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -124,108 +125,195 @@
             max-height: 100%;
             object-fit: contain;
         }
+        .map-container {
+            width: 100%;
+            height: 400px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1 class="page-title" th:text="${activity.id == null ? 'Add New Activity' : 'Edit Activity'}">Activity Form</h1>
-        </header>
-        
-        <form th:action="${activity.id == null ? '/activities' : '/activities/' + activity.id}" 
-              th:object="${activity}" 
-              method="post">
-            
-            <div class="form-group">
-                <label for="name">Name:</label>
-                <input type="text" id="name" th:field="*{name}" required />
-                <div class="error-message" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+<div class="container">
+    <header>
+        <h1 class="page-title" th:text="${activity.id == null ? 'Add New Activity' : 'Edit Activity'}">Activity Form</h1>
+    </header>
+
+    <form th:action="${activity.id == null ? '/activities' : '/activities/' + activity.id}"
+          th:object="${activity}"
+          method="post">
+
+        <div class="form-group">
+            <label for="name">Name:</label>
+            <input type="text" id="name" th:field="*{name}" required />
+            <div class="error-message" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description:</label>
+            <textarea id="description" th:field="*{description}" required></textarea>
+            <div class="error-message" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="location">Location:</label>
+            <input type="text" id="location" th:field="*{location}" required />
+            <div class="error-message" th:if="${#fields.hasErrors('location')}" th:errors="*{location}"></div>
+        </div>
+
+        <!-- Map for location selection -->
+        <div class="form-group">
+            <label for="map">Select Location on Map:</label>
+            <div class="map-container" id="map"></div>
+            <!-- Hidden fields to store selected location -->
+            <input type="hidden" name="latitude" id="latitude" th:field="*{latitude}" />
+            <input type="hidden" name="longitude" id="longitude" th:field="*{longitude}" />
+        </div>
+
+        <div class="form-group">
+            <label for="durationMinutes">Duration (minutes):</label>
+            <input type="number" id="durationMinutes" th:field="*{durationMinutes}" min="1" required />
+            <div class="error-message" th:if="${#fields.hasErrors('durationMinutes')}" th:errors="*{durationMinutes}"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="price">Price:</label>
+            <input type="number" id="price" th:field="*{price}" step="0.01" min="0" required />
+            <div class="error-message" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="imageUrl">Image URL:</label>
+            <input type="url" id="imageUrl" th:field="*{imageUrl}" placeholder="https://example.com/image.jpg" />
+            <div class="error-message" th:if="${#fields.hasErrors('imageUrl')}" th:errors="*{imageUrl}"></div>
+            <div class="image-preview">
+                <img id="imagePreview" th:if="${activity.imageUrl != null && !activity.imageUrl.isEmpty()}" th:src="${activity.imageUrl}" alt="Activity image preview" />
+                <span th:if="${activity.imageUrl == null || activity.imageUrl.isEmpty()}">Image preview will appear here</span>
             </div>
-            
-            <div class="form-group">
-                <label for="description">Description:</label>
-                <textarea id="description" th:field="*{description}" required></textarea>
-                <div class="error-message" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
+        </div>
+
+        <div class="form-group">
+            <label>Categories:</label>
+            <div class="category-selection">
+                <label th:each="category : ${categories}" class="category-checkbox">
+                    <input type="checkbox"
+                           name="categoryIds"
+                           th:value="${category.id}"
+                           th:checked="${activity.categories != null && activity.categories.contains(category)}" />
+                    <span th:text="${category.name}">Category Name</span>
+                </label>
             </div>
-            
-            <div class="form-group">
-                <label for="location">Location:</label>
-                <input type="text" id="location" th:field="*{location}" required />
-                <div class="error-message" th:if="${#fields.hasErrors('location')}" th:errors="*{location}"></div>
-            </div>
-            
-            <div class="form-group">
-                <label for="durationMinutes">Duration (minutes):</label>
-                <input type="number" id="durationMinutes" th:field="*{durationMinutes}" min="1" required />
-                <div class="error-message" th:if="${#fields.hasErrors('durationMinutes')}" th:errors="*{durationMinutes}"></div>
-            </div>
-            
-            <div class="form-group">
-                <label for="price">Price:</label>
-                <input type="number" id="price" th:field="*{price}" step="0.01" min="0" required />
-                <div class="error-message" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></div>
-            </div>
-            
-            <div class="form-group">
-                <label for="imageUrl">Image URL:</label>
-                <input type="url" id="imageUrl" th:field="*{imageUrl}" placeholder="https://example.com/image.jpg" />
-                <div class="error-message" th:if="${#fields.hasErrors('imageUrl')}" th:errors="*{imageUrl}"></div>
-                <div class="image-preview">
-                    <img id="imagePreview" th:if="${activity.imageUrl != null && !activity.imageUrl.isEmpty()}" th:src="${activity.imageUrl}" alt="Activity image preview" />
-                    <span th:if="${activity.imageUrl == null || activity.imageUrl.isEmpty()}">Image preview will appear here</span>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label>Categories:</label>
-                <div class="category-selection">
-                    <label th:each="category : ${categories}" class="category-checkbox">
-                        <input type="checkbox" 
-                               name="categoryIds" 
-                               th:value="${category.id}" 
-                               th:checked="${activity.categories != null && activity.categories.contains(category)}" />
-                        <span th:text="${category.name}">Category Name</span>
-                    </label>
-                </div>
-                <div class="error-message" th:if="${categoryError != null}" th:text="${categoryError}"></div>
-            </div>
-            
-            <div class="button-group">
-                <a th:href="@{/activities}" class="btn btn-secondary">Cancel</a>
-                <button type="submit" class="btn btn-primary">Save</button>
-            </div>
-        </form>
-    </div>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Image preview functionality
-            const imageUrlInput = document.getElementById('imageUrl');
-            const imagePreview = document.getElementById('imagePreview');
-            const previewContainer = document.querySelector('.image-preview');
-            
-            imageUrlInput.addEventListener('input', function() {
-                if (this.value) {
-                    // If there's already an image preview
-                    if (imagePreview) {
-                        imagePreview.src = this.value;
-                    } else {
-                        // Create a new image element
-                        const newImage = document.createElement('img');
-                        newImage.id = 'imagePreview';
-                        newImage.src = this.value;
-                        newImage.alt = 'Activity image preview';
-                        
-                        // Clear the container and add the image
-                        previewContainer.innerHTML = '';
-                        previewContainer.appendChild(newImage);
-                    }
+            <div class="error-message" th:if="${categoryError != null}" th:text="${categoryError}"></div>
+        </div>
+
+        <div class="button-group">
+            <a th:href="@{/activities}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Image preview functionality
+        const imageUrlInput = document.getElementById('imageUrl');
+        const imagePreview = document.getElementById('imagePreview');
+        const previewContainer = document.querySelector('.image-preview');
+
+        imageUrlInput.addEventListener('input', function() {
+            if (this.value) {
+                // If there's already an image preview
+                if (imagePreview) {
+                    imagePreview.src = this.value;
                 } else {
-                    // If the URL is empty, show the placeholder text
-                    previewContainer.innerHTML = '<span>Image preview will appear here</span>';
+                    // Create a new image element
+                    const newImage = document.createElement('img');
+                    newImage.id = 'imagePreview';
+                    newImage.src = this.value;
+                    newImage.alt = 'Activity image preview';
+
+                    // Clear the container and add the image
+                    previewContainer.innerHTML = '';
+                    previewContainer.appendChild(newImage);
                 }
-            });
+            } else {
+                // If the URL is empty, show the placeholder text
+                previewContainer.innerHTML = '<span>Image preview will appear here</span>';
+            }
+        })
         });
-    </script>
+</script>
+<script>
+    // Create map view
+    const view = new ol.View({
+        center: ol.proj.fromLonLat([0, 0]),
+        zoom: 2
+    });
+
+    // Create a vector layer for the marker
+    const markerSource = new ol.source.Vector();
+    const markerStyle = new ol.style.Style({
+        image: new ol.style.Circle({
+            radius: 10, // Increase the radius to make the pin larger
+            fill: new ol.style.Fill({ color: 'red' }),
+            stroke: new ol.style.Stroke({ color: 'white', width: 2 })
+        })
+    });
+    const markerLayer = new ol.layer.Vector({
+        source: markerSource,
+        style: markerStyle
+    });
+
+    // Initialize the map
+    const map = new ol.Map({
+        target: 'map',
+        layers: [
+            new ol.layer.Tile({
+                source: new ol.source.OSM()
+            }),
+            markerLayer
+        ],
+        view: view
+    });
+
+    // Handle map click to add marker
+    map.on('click', function (event) {
+        const coordinate = ol.proj.toLonLat(event.coordinate);
+        const lon = coordinate[0].toFixed(6);
+        const lat = coordinate[1].toFixed(6);
+
+        document.getElementById('latitude').value = lat;
+        document.getElementById('longitude').value = lon;
+        document.getElementById('location').value = `Lat: ${lat}, Lon: ${lon}`;
+
+        markerSource.clear();
+        const marker = new ol.Feature({
+            geometry: new ol.geom.Point(event.coordinate)
+        });
+        markerSource.addFeature(marker);
+    });
+
+    // Automatically zoom in on user's location when available
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function (position) {
+            const lon = position.coords.longitude;
+            const lat = position.coords.latitude;
+            const coords = ol.proj.fromLonLat([lon, lat]);
+
+            view.setCenter(coords);
+            view.setZoom(14);
+
+            markerSource.clear();
+            const marker = new ol.Feature({
+                geometry: new ol.geom.Point(coords)
+            });
+            markerSource.addFeature(marker);
+
+            document.getElementById('latitude').value = lat.toFixed(6);
+            document.getElementById('longitude').value = lon.toFixed(6);
+            document.getElementById('location').value = `Lat: ${lat.toFixed(6)}, Lon: ${lon.toFixed(6)}`;
+        });
+    }
+</script>
+
 </body>
 </html>
