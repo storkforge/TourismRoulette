@@ -236,11 +236,12 @@
   </style>
 </head>
 <body>
+<input type="hidden" id="userRoleField" th:value="${#authentication != null ? #authentication.authorities[0].authority : 'ROLE_ANONYMOUS'}" />
 <div class="container">
   <header>
     <h1 class="page-title">Activities</h1>
     <div class="nav-links">
-      <a href="/dashboard" class="nav-link" th:text="#{dashboard}">Dashboard</a>
+      <button id="dashboardButton" class="nav-link" th:text="#{dashboard}">Dashboard</button>
       <a href="/categories" class="nav-link" th:text="#{preferences}">Categories</a>
       <a href="/activities/new" class="nav-link" th:text="#{addActivity}">Add Activity</a>
     </div>
@@ -318,6 +319,7 @@
 </div>
 
 <script>
+  var userRole = document.getElementById('userRoleField').value;
   document.addEventListener('DOMContentLoaded', function() {
     // Clear filters button
     document.getElementById('clearFilters').addEventListener('click', function() {
@@ -334,6 +336,18 @@
       document.getElementById('searchForm').submit();
     });
   });
+
+  // Event listener to redirect to /dashboard when button is clicked
+  var dashboardButton = document.getElementById('dashboardButton');
+  dashboardButton.addEventListener('click', function() {
+    if (userRole === 'ROLE_USER') {
+      window.location.href = '/user-panel'; // Redirect to user panel
+    } else if (userRole === 'ROLE_ADMIN') {
+      window.location.href = '/dashboard'; // Redirect to admin dashboard
+    } else {
+      window.location.href = '/login'; // Redirect to login if no role is found
+    }
+  })
 </script>
 </body>
 </html>
