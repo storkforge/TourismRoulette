@@ -4,13 +4,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import java.util.UUID;
-
 @Controller
 public class ChatViewController {
+
     @GetMapping("/chat")
-    public String chatPage (Model model) {
-        model.addAttribute("sessionId", UUID.randomUUID().toString());
-        return "chat";
+    public String showChatPage(Model model) {
+        // Optionally, pass data to the model for initial rendering
+        return "chatbot";  // This corresponds to the "chatbot.html" template
     }
 }

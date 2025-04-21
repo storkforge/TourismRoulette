@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chatbot</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function sendMessage() {
+            let prompt = document.getElementById("prompt").value;
+            if (prompt.trim() === "") {
+                alert("Please enter a prompt");
+                return;
+            }
+
+            // Send the prompt to the backend
+            $.ajax({
+                url: "/api/ai/RouletteBot",  // Adjust this to your endpoint
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(prompt),
+                success: function(response) {
+                    // Display the AI response
+                    document.getElementById("response").innerText = "AI: " + response;
+                    document.getElementById("history").innerHTML += "<p>User: " + prompt + "</p><p>AI: " + response + "</p>";
+                },
+                error: function(error) {
+                    alert("Error: " + error.statusText);
+                }
+            });
+        }
+
+        function loadHistory() {
+            // Fetch the session history
+            $.ajax({
+                url: "/api/ai/RouletteBot/history",
+                type: "GET",
+                success: function(response) {
+                    let historyHtml = "";
+                    response.forEach(item => {
+                        historyHtml += "<p>" + item + "</p>";
+                    });
+                    document.getElementById("history").innerHTML = historyHtml;
+                }
+            });
+        }
+
+        window.onload = loadHistory;
+    </script>
+</head>
+<body>
+<h1>AI Chatbot</h1>
+
+<div>
+    <textarea id="prompt" rows="4" cols="50" placeholder="Enter your prompt"></textarea><br><br>
+    <button onclick="sendMessage()">Send</button>
+</div>
+
+<h3>Response:</h3>
+<div id="response"></div>
+
+<h3>Interaction History:</h3>
+<div id="history"></div>
+</body>
+</html>

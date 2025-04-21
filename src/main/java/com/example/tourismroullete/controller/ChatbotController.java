@@ -1,47 +1,50 @@
 package com.example.tourismroullete.controller;
 
-import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.mistralai.MistralAiChatClient;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.ai.mistralai.MistralAiChatModel;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.ai.chat.messages.Message;
-import org.springframework.ai.chat.messages.UserMessage;
-import org.springframework.ai.chat.messages.AssistantMessage;
-
-import java.util.*;
+import jakarta.servlet.http.HttpSession;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
-@RequestMapping("/chatbot")
+@RequestMapping("/api/ai/RouletteBot")
 public class ChatbotController {
 
-    private final MistralAiChatClient chatClient;
-    private final Map<String, List<Message>> sessions = new HashMap<>();
+    private final MistralAiChatModel chatModel;
 
-    @Autowired
-    public ChatbotController(MistralAiChatClient chatClient) {
-        this.chatClient = chatClient;
+    public ChatbotController(MistralAiChatModel chatModel) {
+        this.chatModel = chatModel;
     }
 
-    @PostMapping("/{sessionId}")
-    public Map<String, String> chat(@PathVariable String sessionId, @RequestBody Map<String, String> payload) {
-        String userMessage = payload.get("message");
-        if (userMessage == null || userMessage.isBlank()) {
-            return Map.of("error", "Message is required");
+    @PostMapping
+    public String chatWithAi(@RequestBody String prompt, HttpSession session) {
+        // Call the AI model
+        String response = chatModel.call(prompt);
+
+        // Retrieve the current session history or initialize an empty list
+        List<String> history = (List<String>) session.getAttribute("aiHistory");
+
+        // Check if the retrieved object is a List<String> before casting
+        if (history == null || !(history instanceof List)) {
+            history = new ArrayList<>();
         }
 
-        sessions.putIfAbsent(sessionId, new ArrayList<>());
-        List<Message> history = sessions.get(sessionId);
+        // Add the prompt and response to the session history
+        history.add("User: " + prompt);
+        history.add("AI: " + response);
 
-        // Add user's message to history
-        history.add(new UserMessage(userMessage));
+        // Save the updated history back to the session
+        session.setAttribute("aiHistory", history);
+
+        // Return the AI response
+        return response;
+    }
 
 
-        Prompt prompt = new Prompt(history);
-        var response = chatClient.call(prompt).getResult().getOutput().getContent();
-
-        // Add AI response to history
-        history.add(new AssistantMessage(response));
-
-        return Map.of("response", response);
+    @GetMapping("/history")
+    public List<String> getHistory(HttpSession session) {
+        // Retrieve the history from the session (if exists)
+        List<String> history = (List<String>) session.getAttribute("aiHistory");
+        return history != null ? history : new ArrayList<>();
     }
 }
