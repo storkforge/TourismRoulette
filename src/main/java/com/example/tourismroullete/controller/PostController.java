@@ -3,7 +3,9 @@ package com.example.tourismroullete.controller;
 import com.example.tourismroullete.model.Comment;
 import com.example.tourismroullete.model.Post;
 import com.example.tourismroullete.entities.User;
+import com.example.tourismroullete.repositories.UserRepository;
 import com.example.tourismroullete.service.PostService;
+import com.example.tourismroullete.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -21,6 +23,8 @@ import java.util.List;
 public class PostController {
 
     private final PostService postService;
+    private final UserService userService;
+    private final UserRepository userRepository;
 
     // Hämta alla inlägg via REST API
     @GetMapping
@@ -54,7 +58,7 @@ public class PostController {
             @RequestParam("content") String content,
             @RequestParam(value = "isPublic", defaultValue = "true") boolean isPublic,
             @RequestParam(value = "image", required = false) MultipartFile imageFile,
-            @AuthenticationPrincipal User user
+            Principal principal
     ) {
         String userName = principal.getName();
         User user = userService.findByUsername(userName).orElseThrow();
