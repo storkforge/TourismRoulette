@@ -1,5 +1,6 @@
 package com.example.tourismroullete.controller;
 
+import com.example.tourismroullete.exception.ResourceNotFoundException;
 import com.example.tourismroullete.model.Comment;
 import com.example.tourismroullete.model.Post;
 import com.example.tourismroullete.entities.User;
@@ -7,6 +8,7 @@ import com.example.tourismroullete.repositories.UserRepository;
 import com.example.tourismroullete.service.PostService;
 import com.example.tourismroullete.service.UserService;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -89,7 +91,26 @@ public class PostController {
         return ResponseEntity.noContent().build();
     }
 
+    // Lägg till en kommentar till ett inlägg via REST API
+    @PostMapping("/{postId}/comments")
+    public ResponseEntity<Comment> addComment(@PathVariable Long postId,
+                                              @RequestBody String content,
+                                              @AuthenticationPrincipal User user) {
+        Post post = postService.getPostById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
+        Comment comment = postService.addComment(post, content, user);
+        return ResponseEntity.ok(comment);
+    }
 
+    // Gilla eller ogilla ett inlägg via REST API
+    @PostMapping("/{postId}/likes")
+    public ResponseEntity<Void> toggleLike(@PathVariable Long postId,
+                                           @AuthenticationPrincipal User user) {
+        Post post = postService.getPostById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
+        postService.toggleLike(post, user);
+        return ResponseEntity.ok().build();
+    }
 
 
 
