@@ -69,11 +69,11 @@ public class PostService {
 
 
 
-    public Post updatePost(Long id, Post updatedPost, User user) {
+    public Post updatePost(Long id, Post updatedPost, String username) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
 
-        if (!post.getAuthor().equals(user)) {
+        if (!post.getAuthor().getUsername().equals(username)) {
             throw new UnauthorizedException("Not authorized to edit this post");
         }
 
@@ -84,6 +84,7 @@ public class PostService {
 
         return postRepository.save(post);
     }
+
 
     public void deletePost(Long id, User user) {
         Post post = postRepository.findById(id)
@@ -126,6 +127,11 @@ public class PostService {
 
         postRepository.save(post);
     }
+
+    public List<Post> getPostsByUsername(String username) {
+        return postRepository.findByAuthor_UsernameOrderByCreatedAtDesc(username);
+    }
+
 
 
 

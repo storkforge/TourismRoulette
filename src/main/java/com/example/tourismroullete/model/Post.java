@@ -55,13 +55,6 @@ public class Post {
 
     @Column(name = "image", columnDefinition = "BYTEA")
     private byte[] image;
-
-
-
-
-
-
-
 }
 
 

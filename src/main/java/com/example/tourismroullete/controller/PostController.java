@@ -74,8 +74,10 @@ public class PostController {
     public ResponseEntity<Post> updatePost(@PathVariable Long id,
                                            @RequestBody Post updatedPost,
                                            @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(postService.updatePost(id, updatedPost, user));
+        String username = user.getUsername(); // 👈 hämta username här
+        return ResponseEntity.ok(postService.updatePost(id, updatedPost, username));
     }
+
 
     // Ta bort ett inlägg via REST API
     @DeleteMapping("/{id}")
