@@ -11,9 +11,20 @@
 </head>
 <body>
 <h2>Tourism Chatbot</h2>
+
+<!-- Category selector -->
+<label for="category">Choose a category:</label>
+<select id="category">
+    <option value="nature">Nature</option>
+    <option value="history">History</option>
+    <option value="family">Family-Friendly</option>
+    <option value="adventure">Adventure</option>
+</select>
+<br><br>
+
 <div id="chat-box"></div>
+<label for="message-input">Your message:</label><br>
 <input type="text" id="message-input" placeholder="Type your message..." style="width: 80%;">
-<button onclick="sendMessage()">Send</button>
 
 <script>
     const sessionId = /*[[${sessionId}]]*/ 'default-session';
@@ -29,6 +40,7 @@
 
     async function sendMessage() {
         const message = input.value;
+        const category = document.getElementById('category').value;
         if (!message.trim()) return;
 
         addMessage('user', message);
@@ -37,12 +49,13 @@
         const response = await fetch(`/chatbot/${sessionId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message })
+            body: JSON.stringify({ message, category }) // ⬅️ Include category!
         });
 
         const result = await response.json();
         addMessage('bot', result.response || 'Something went wrong.');
     }
+
 </script>
 </body>
 </html>
