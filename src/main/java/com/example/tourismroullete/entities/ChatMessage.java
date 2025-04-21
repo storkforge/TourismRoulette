@@ -1,7 +1,10 @@
 package com.example.tourismroullete.entities;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -14,19 +17,22 @@ public class ChatMessage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    private String role; // "USER" or "AI"
+    @Column(nullable = false)
+    private String sender;  // "User" or "AI"
 
-    @Column(length = 5000)
-    private String message;
+    @Column(length = 5000) // Increase the length here
+    private String text;
 
+    @Column(nullable = false)
     private LocalDateTime timestamp;
 
-    @PrePersist
-    protected void onCreate() {
-        timestamp = LocalDateTime.now();
-    }
+    @Column(name = "session_id", nullable = false)
+    private String sessionId;
+
+
+    // Add constructors, getters, and setters if needed
 }

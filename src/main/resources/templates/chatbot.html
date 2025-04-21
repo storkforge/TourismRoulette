@@ -11,15 +11,14 @@
             display: flex;
         }
 
-        /* Sidebar styles */
         .history-sidebar {
-            width: 200px;
+            width: 250px;
             background: #fff;
             margin-right: 20px;
             padding: 10px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            height: 300px;
+            height: 400px;
             overflow-y: auto;
         }
 
@@ -42,7 +41,6 @@
             background: #e0e0e0;
         }
 
-        /* Chat box styles */
         .chat-box {
             max-width: 600px;
             flex-grow: 1;
@@ -77,14 +75,22 @@
             color: white;
             border: none;
             border-radius: 4px;
+            margin-left: 10px;
+        }
+
+        .new-session-btn {
+            margin-top: 10px;
+            width: 100%;
+            background: #28a745;
         }
     </style>
 </head>
 <body>
 <!-- Sidebar for chat history -->
-<div class="history-sidebar" id="historySidebar">
+<div class="history-sidebar">
     <h3>Chat History</h3>
-    <!-- Chat history will be loaded here -->
+    <button class="new-session-btn" onclick="startNewSession()">+ New Chat</button>
+    <div id="historySidebar"></div>
 </div>
 
 <!-- Main chat box -->
@@ -96,70 +102,91 @@
 </div>
 
 <script>
-    // Fetch and display previous chat history on page load
-    async function loadHistory() {
-        const historySidebar = document.getElementById("historySidebar");
+    let sessionId = generateSessionId(); // Default to a fresh session
+    let allHistory = {}; // Map of sessionId => messages
 
+    function generateSessionId() {
+        return 'session-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+    }
+
+    async function loadHistory() {
         try {
             const response = await fetch('/api/ai/RouletteBot/history');
             const history = await response.json();
+            allHistory = history;
 
-            // Clear any existing history
-            historySidebar.innerHTML = '<h3>Chat History</h3>';
+            const sidebar = document.getElementById("historySidebar");
+            sidebar.innerHTML = "";
 
-            // Add history items to the sidebar
-            history.forEach((item, index) => {
+            Object.entries(history).forEach(([id, messages], index) => {
                 const historyItem = document.createElement("div");
                 historyItem.classList.add("history-item");
-                historyItem.innerText = `Chat ${index + 1}: ${item.slice(0, 30)}...`; // Display first 30 chars
-                historyItem.onclick = () => loadChat(item);
-                historySidebar.appendChild(historyItem);
+
+                const firstUserMsg = messages.find(m => m.sender === "User");
+                const preview = firstUserMsg ? firstUserMsg.text.slice(0, 30) + "..." : `Chat ${index + 1}`;
+
+                historyItem.innerText = preview;
+                historyItem.onclick = () => {
+                    sessionId = id;
+                    loadChat(id);
+                };
+
+                sidebar.appendChild(historyItem);
             });
         } catch (error) {
             console.error('Error loading chat history:', error);
         }
     }
 
-    // Load selected history chat into the chat log
-    function loadChat(history) {
+    function loadChat(id) {
         const chatLog = document.getElementById("chatLog");
-        chatLog.innerHTML = ''; // Clear existing chat log
+        chatLog.innerHTML = "";
 
-        history.forEach(msg => {
+        const messages = allHistory[id] || [];
+        messages.forEach(msg => {
             const msgElement = document.createElement('p');
-            msgElement.innerHTML = `<strong>${msg.user}: </strong>${msg.text}`;
+            msgElement.innerHTML = `<strong>${msg.sender}:</strong> ${msg.text}`;
             chatLog.appendChild(msgElement);
         });
+
+        chatLog.scrollTop = chatLog.scrollHeight;
     }
 
-    // Send a new message to the AI
     async function sendMessage() {
         const input = document.getElementById("userInput");
         const chatLog = document.getElementById("chatLog");
-        const userMessage = input.value;
-        if (!userMessage.trim()) return;
+        const message = input.value.trim();
 
-        // Append user message
-        chatLog.innerHTML += `<p><strong>You:</strong> ${userMessage}</p>`;
+        if (!message) return;
+
+        // Display user message
+        chatLog.innerHTML += `<p><strong>You:</strong> ${message}</p>`;
         input.value = "";
 
         try {
             const response = await fetch('/api/ai/RouletteBot', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(userMessage)
+                body: JSON.stringify({
+                    message: message,
+                    sessionId: sessionId
+                })
             });
-            const aiReply = await response.text();
 
-            // Append AI response
+            const aiReply = await response.text();
             chatLog.innerHTML += `<p><strong>RouletteBot:</strong> ${aiReply}</p>`;
             chatLog.scrollTop = chatLog.scrollHeight;
 
-            // Update history sidebar
-            loadHistory();
+            // Reload history with the new session/message
+            await loadHistory();
         } catch (error) {
             chatLog.innerHTML += `<p><em>Error: ${error.message}</em></p>`;
         }
+    }
+
+    function startNewSession() {
+        sessionId = generateSessionId();
+        document.getElementById("chatLog").innerHTML = "";
     }
 
     // Load chat history on page load
