@@ -1,10 +1,9 @@
-package service;
+package com.example.tourismroullete.service;
 
 import com.example.tourismroullete.entities.Activity;
 import com.example.tourismroullete.entities.Category;
 import com.example.tourismroullete.repositories.ActivityRepository;
 import com.example.tourismroullete.repositories.CategoryRepository;
-import com.example.tourismroullete.service.ActivityService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
