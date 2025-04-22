@@ -16,28 +16,27 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class) // Enable Mockito annotations
+@ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
-    @Mock // Create a mock for UserRepository
+    @Mock
     private UserRepository mockUserRepository;
 
-    @Mock // Create a mock for PasswordEncoder
+    @Mock
     private PasswordEncoder mockPasswordEncoder;
 
-    @InjectMocks // Create an instance of UserService and inject the mocks
+    @InjectMocks
     private UserService userService;
 
     private User testUser;
 
     @BeforeEach
     void setUp() {
-        // Basic setup for a user object if needed for multiple tests
         testUser = new User();
         testUser.setId(1L);
         testUser.setUsername("testuser");
         testUser.setEmail("test@example.com");
-        testUser.setPassword("rawPassword"); // Set raw password for registration test
+        testUser.setPassword("rawPassword");
     }
 
     @Test
@@ -45,67 +44,65 @@ class UserServiceTest {
         // Arrange
         String rawPass = "password123";
         String encodedPass = "encodedPassword123";
-        when(mockPasswordEncoder.encode(rawPass)).thenReturn(encodedPass); // Define mock behavior
+        when(mockPasswordEncoder.encode(rawPass)).thenReturn(encodedPass);
 
         // Act
         String result = userService.encodePassword(rawPass);
 
         // Assert
-        assertEquals(encodedPass, result); // Check if the result matches the mock's return value
-        verify(mockPasswordEncoder, times(1)).encode(rawPass); // Verify encode was called once
+        assertEquals(encodedPass, result);
+        verify(mockPasswordEncoder, times(1)).encode(rawPass);
     }
 
     @Test
     void isUsernameAvailable_shouldCallRepositoryExistsByUsername() {
         // Arrange
         String username = "existingUser";
-        when(mockUserRepository.existsByUsername(username)).thenReturn(true); // Mock repo response
+        when(mockUserRepository.existsByUsername(username)).thenReturn(true);
 
         // Act
         boolean isAvailable = userService.isUsernameAvailable(username);
 
         // Assert
-        assertTrue(isAvailable); // Check the result
-        verify(mockUserRepository, times(1)).existsByUsername(username); // Verify repo call
+        assertTrue(isAvailable);
+        verify(mockUserRepository, times(1)).existsByUsername(username);
     }
 
     @Test
     void isEmailAvailable_shouldCallRepositoryExistsByEmail() {
         // Arrange
         String email = "new@example.com";
-        when(mockUserRepository.existsByEmail(email)).thenReturn(false); // Mock repo response
+        when(mockUserRepository.existsByEmail(email)).thenReturn(false);
 
         // Act
         boolean isAvailable = userService.isEmailAvailable(email);
 
         // Assert
-        assertFalse(isAvailable); // Check the result
-        verify(mockUserRepository, times(1)).existsByEmail(email); // Verify repo call
+        assertFalse(isAvailable);
+        verify(mockUserRepository, times(1)).existsByEmail(email);
     }
 
     @Test
     void findByUsername_shouldCallRepositoryFindByUsername() {
         // Arrange
         String username = "findMe";
-        when(mockUserRepository.findByUsername(username)).thenReturn(Optional.of(testUser)); // Mock repo response
+        when(mockUserRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
 
         // Act
         Optional<User> foundUserOpt = userService.findByUsername(username);
 
         // Assert
-        assertTrue(foundUserOpt.isPresent()); // Check if user was found
-        assertEquals(testUser, foundUserOpt.get()); // Check if it's the correct user
-        verify(mockUserRepository, times(1)).findByUsername(username); // Verify repo call
+        assertTrue(foundUserOpt.isPresent());
+        assertEquals(testUser, foundUserOpt.get());
+        verify(mockUserRepository, times(1)).findByUsername(username);
     }
 
     @Test
     void registerNewUser_shouldEncodePasswordAndSaveUser() {
         // Arrange
-        String rawPassword = testUser.getPassword(); // "rawPassword"
+        String rawPassword = testUser.getPassword();
         String encodedPassword = "encodedPassword";
-
-        when(mockPasswordEncoder.encode(rawPassword)).thenReturn(encodedPassword); // Mock encoding
-        // Mock save to just return the user passed to it
+        when(mockPasswordEncoder.encode(rawPassword)).thenReturn(encodedPassword);
         when(mockUserRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
@@ -113,8 +110,8 @@ class UserServiceTest {
 
         // Assert
         assertNotNull(registeredUser);
-        assertEquals(encodedPassword, registeredUser.getPassword()); // IMPORTANT: Check if password was encoded
-        verify(mockPasswordEncoder, times(1)).encode(rawPassword); // Verify encoding happened
-        verify(mockUserRepository, times(1)).save(testUser); // Verify save happened
+        assertEquals(encodedPassword, registeredUser.getPassword());
+        verify(mockPasswordEncoder, times(1)).encode(rawPassword);
+        verify(mockUserRepository, times(1)).save(testUser);
     }
 }
