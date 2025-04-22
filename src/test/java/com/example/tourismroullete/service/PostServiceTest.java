@@ -171,4 +171,51 @@ class PostServiceTest {
         verify(commentRepository).save(any(Comment.class));
     }
 
+    @Test
+    void testGetAllPosts_ReturnsListOfPosts() {
+        // Arrange
+        Post post1 = new Post();
+        post1.setId(1L);
+        Post post2 = new Post();
+        post2.setId(2L);
+        when(postRepository.findAll()).thenReturn(Arrays.asList(post1, post2));
+
+        // Act
+        List<Post> result = postService.getAllPosts();
+
+        // Assert
+        assertEquals(2, result.size());
+        verify(postRepository, times(1)).findAll();
+    }
+
+    @Test
+    void testGetPostById_ExistingId_ReturnsPost() {
+        // Arrange
+        Post post = new Post();
+        post.setId(1L);
+        when(postRepository.findById(1L)).thenReturn(Optional.of(post));
+
+        // Act
+        Optional<Post> result = postService.getPostById(1L);
+
+        // Assert
+        assertTrue(result.isPresent());
+        assertEquals(1L, result.get().getId());
+        verify(postRepository, times(1)).findById(1L);
+    }
+
+    @Test
+    void testGetPostById_NonExistingId_ReturnsEmptyOptional() {
+        // Arrange
+        when(postRepository.findById(99L)).thenReturn(Optional.empty());
+
+        // Act
+        Optional<Post> result = postService.getPostById(99L);
+
+        // Assert
+        assertFalse(result.isPresent());
+        verify(postRepository, times(1)).findById(99L);
+    }
 }
+
+
